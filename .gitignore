@@ -1,0 +1,61 @@
+# --- Rust ---
+target/
+**/*.rs.bk
+*.pdb
+
+# --- Node / SvelteKit / Vite ---
+node_modules/
+.svelte-kit/
+build/
+dist/
+.vite/
+coverage/
+.turbo/
+
+# --- pnpm ---
+pnpm-debug.log*
+.pnpm-store/
+
+# --- Env / secrets ---
+.env
+.env.*
+!.env.example
+
+# --- SQLx offline data is COMMITTED (do not ignore .sqlx/) ---
+
+# --- Logs ---
+*.log
+logs/
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --- Editors / IDEs ---
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.shared.json
+*.swp
+*.swo
+*~
+.history/
+
+# --- Test / coverage ---
+.nyc_output/
+*.lcov
+tarpaulin-report.html
+
+# --- Playwright ---
+test-results/
+playwright-report/
+playwright/.cache/
+
+# --- Docker ---
+.docker-data/
+
+# --- Misc ---
+*.tmp
+*.bak

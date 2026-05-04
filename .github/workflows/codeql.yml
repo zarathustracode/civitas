@@ -1,0 +1,45 @@
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run weekly even without changes, in case of new advisories.
+    - cron: "0 6 * * 1"
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        # Rust isn't a CodeQL language; cargo-audit covers it in backend-ci.
+        # CodeQL covers JS/TS once the frontend exists.
+        language: [javascript-typescript]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Skip if frontend missing
+        id: guard
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.guard.outputs.run == 'true'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+      - if: steps.guard.outputs.run == 'true'
+        uses: github/codeql-action/autobuild@v3
+      - if: steps.guard.outputs.run == 'true'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

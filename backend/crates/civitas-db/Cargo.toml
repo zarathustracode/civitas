@@ -1,0 +1,25 @@
+[package]
+name = "civitas-db"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Database layer for Civitas. SQLx queries and migrations."
+
+[lints]
+workspace = true
+
+[dependencies]
+civitas-types = { workspace = true }
+civitas-core  = { workspace = true }
+sqlx          = { workspace = true }
+serde         = { workspace = true }
+serde_json    = { workspace = true }
+chrono        = { workspace = true }
+uuid          = { workspace = true }
+rust_decimal  = { workspace = true }
+thiserror     = { workspace = true }
+tokio         = { workspace = true }
+tracing       = { workspace = true }

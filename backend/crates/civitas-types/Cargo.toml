@@ -1,0 +1,30 @@
+[package]
+name = "civitas-types"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Shared domain types for Civitas (IDs, enums, value objects)."
+
+[lints]
+workspace = true
+
+[features]
+default = []
+# Emit TypeScript bindings via ts-rs for the SvelteKit frontend.
+# Enabled in CI / local code-gen runs; not required for runtime.
+ts-export = ["dep:ts-rs"]
+
+[dependencies]
+serde      = { workspace = true }
+serde_json = { workspace = true }
+uuid       = { workspace = true }
+chrono     = { workspace = true }
+rust_decimal = { workspace = true }
+thiserror  = { workspace = true }
+ts-rs      = { workspace = true, optional = true }
+
+[dev-dependencies]
+rust_decimal_macros = "1"

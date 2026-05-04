@@ -1,0 +1,67 @@
+name: Proposal
+description: Propose a feature, governance change, or substantive direction shift.
+title: "[proposal] "
+labels: ["proposal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for substantive proposals — features, governance changes,
+        philosophy clarifications. Small bug fixes do not need a proposal; a PR is enough.
+
+        Read [GOVERNANCE.md](https://github.com/zarathustracode/civitas/blob/main/GOVERNANCE.md)
+        before opening one.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A one-paragraph summary of what you are proposing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation
+      description: |
+        What problem does this solve? Who is affected? What happens if we
+        don't do this? Strong motivation matters more than clever mechanism.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-change
+    attributes:
+      label: Proposed change
+      description: |
+        Describe the proposed change concretely. For features, sketch the
+        UX and the API. For governance, propose specific text changes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What else did you consider and why is this preferred?
+    validations:
+      required: true
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact and risks
+      description: |
+        Effect on users, on operators, on the data model, on the governance
+        migration. Risks and how to mitigate them.
+    validations:
+      required: true
+
+  - type: textarea
+    id: open-questions
+    attributes:
+      label: Open questions
+      description: Anything you don't know yet and want feedback on.
+    validations:
+      required: false

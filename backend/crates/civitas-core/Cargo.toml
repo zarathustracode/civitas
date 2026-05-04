@@ -1,0 +1,25 @@
+[package]
+name = "civitas-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Pure voting and delegation logic for Civitas. No I/O. The audit surface."
+
+[lints]
+workspace = true
+
+[dependencies]
+civitas-types = { workspace = true }
+serde         = { workspace = true }
+chrono        = { workspace = true }
+rust_decimal  = { workspace = true }
+thiserror     = { workspace = true }
+uuid          = { workspace = true }
+tracing       = { workspace = true }
+
+[dev-dependencies]
+proptest          = { workspace = true }
+pretty_assertions = { workspace = true }

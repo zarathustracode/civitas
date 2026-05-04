@@ -1,0 +1,91 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/civitas-types",
+    "crates/civitas-core",
+    "crates/civitas-db",
+    "crates/civitas-auth",
+    "crates/civitas-api",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.88"
+license = "AGPL-3.0-or-later"
+authors = ["Nebojša Gašparović <ubermansch.zarathustra@gmail.com>"]
+repository = "https://github.com/zarathustracode/civitas"
+homepage = "https://github.com/zarathustracode/civitas"
+
+[workspace.dependencies]
+# Local crates
+civitas-types = { path = "crates/civitas-types", version = "0.1.0" }
+civitas-core  = { path = "crates/civitas-core",  version = "0.1.0" }
+civitas-db    = { path = "crates/civitas-db",    version = "0.1.0" }
+civitas-auth  = { path = "crates/civitas-auth",  version = "0.1.0" }
+
+# Async runtime / web
+tokio  = { version = "1", features = ["full"] }
+axum   = { version = "0.7", features = ["macros"] }
+tower  = "0.5"
+tower-http = { version = "0.6", features = ["trace", "cors", "set-header"] }
+hyper  = "1"
+
+# Serde / serialization
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Errors / logging
+thiserror = "1"
+anyhow    = "1"
+tracing   = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "fmt"] }
+
+# Domain primitives
+uuid    = { version = "1", features = ["v7", "serde"] }
+chrono  = { version = "0.4", default-features = false, features = ["serde", "clock"] }
+rust_decimal = { version = "1", features = ["serde-with-str"] }
+
+# Database
+sqlx = { version = "0.8", default-features = false, features = [
+    "runtime-tokio",
+    "tls-rustls",
+    "postgres",
+    "uuid",
+    "chrono",
+    "rust_decimal",
+    "macros",
+    "migrate",
+] }
+
+# Auth / crypto
+argon2     = "0.5"
+rand       = "0.8"
+base64     = "0.22"
+jsonwebtoken = "9"
+
+# Validation
+validator = { version = "0.18", features = ["derive"] }
+
+# Type sharing with the frontend
+ts-rs = { version = "10", features = ["uuid-impl", "chrono-impl"] }
+
+# Test
+proptest      = "1"
+pretty_assertions = "1"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all      = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+module_name_repetitions = "allow"
+missing_errors_doc      = "allow"
+missing_panics_doc      = "allow"
+must_use_candidate      = "allow"
+
+[profile.release]
+lto           = "thin"
+codegen-units = 1
+strip         = "symbols"
