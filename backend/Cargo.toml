@@ -25,11 +25,13 @@ civitas-db    = { path = "crates/civitas-db",    version = "0.1.0" }
 civitas-auth  = { path = "crates/civitas-auth",  version = "0.1.0" }
 
 # Async runtime / web
-tokio  = { version = "1", features = ["full"] }
-axum   = { version = "0.7", features = ["macros"] }
-tower  = "0.5"
-tower-http = { version = "0.6", features = ["trace", "cors", "set-header"] }
-hyper  = "1"
+tokio       = { version = "1", features = ["full"] }
+axum        = { version = "0.7", features = ["macros"] }
+axum-extra  = { version = "0.9", features = ["cookie"] }
+async-trait = "0.1"
+tower       = "0.5"
+tower-http  = { version = "0.6", features = ["trace", "cors", "set-header", "request-id", "limit"] }
+hyper       = "1"
 
 # Serde / serialization
 serde      = { version = "1", features = ["derive"] }

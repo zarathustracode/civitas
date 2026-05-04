@@ -21,11 +21,15 @@ civitas-core  = { workspace = true }
 civitas-db    = { workspace = true }
 civitas-auth  = { workspace = true }
 
-tokio      = { workspace = true }
-axum       = { workspace = true }
+tokio       = { workspace = true }
+axum        = { workspace = true }
+axum-extra  = { workspace = true }
+async-trait = { workspace = true }
+time        = "0.3"
 tower      = { workspace = true }
 tower-http = { workspace = true }
 hyper      = { workspace = true }
+sqlx       = { workspace = true }
 serde      = { workspace = true }
 serde_json = { workspace = true }
 thiserror  = { workspace = true }

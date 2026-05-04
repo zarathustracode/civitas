@@ -1,37 +1,28 @@
-//! Civitas API server.
-//!
-//! Minimal walking-skeleton entrypoint. Routes for auth, proposals, votes,
-//! delegations, and deliberation are added in follow-up sessions; this binary
-//! today exposes only `/health` so the wiring is exercised end to end.
+//! Civitas API server entrypoint.
 
-use std::net::SocketAddr;
-
-use axum::{routing::get, Json, Router};
-use serde_json::json;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
+
+use civitas_api::{router, AppState, Config};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     init_tracing();
 
-    let addr: SocketAddr = std::env::var("HTTP_LISTEN_ADDR")
-        .unwrap_or_else(|_| "127.0.0.1:8080".to_string())
-        .parse()?;
+    let config = Config::from_env()?;
+    tracing::info!(addr = %config.http_listen_addr, "loading config");
 
-    let app = Router::new().route("/health", get(health));
+    let pool = civitas_db::connect(&config.database_url, config.database_max_connections).await?;
+    civitas_db::migrate(&pool).await?;
+    tracing::info!("migrations applied");
+
+    let addr = config.http_listen_addr;
+    let state = AppState::new(pool, config);
+    let app = router(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;
     tracing::info!(%addr, "civitas-api listening");
     axum::serve(listener, app).await?;
     Ok(())
-}
-
-async fn health() -> Json<serde_json::Value> {
-    Json(json!({
-        "status": "ok",
-        "service": "civitas-api",
-        "version": env!("CARGO_PKG_VERSION"),
-    }))
 }
 
 fn init_tracing() {
