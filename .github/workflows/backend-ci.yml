@@ -74,8 +74,10 @@ jobs:
         with:
           workspaces: backend
       - name: Run tests
-        # Use online sqlx so we exercise migrations against real Postgres.
-        run: SQLX_OFFLINE=false cargo test --workspace --all-features --no-fail-fast
+        # SQLX_OFFLINE uses the committed .sqlx/ cache for compile-time
+        # query checking; the integration tests apply migrations to the
+        # running Postgres at runtime via civitas_db::migrate().
+        run: cargo test --workspace --all-features --no-fail-fast
 
   audit:
     name: cargo-audit
@@ -90,4 +92,10 @@ jobs:
         with:
           workspaces: backend
       - run: cargo install cargo-audit --locked
-      - run: cargo audit --deny warnings
+      - name: Run cargo-audit
+        # RUSTSEC-2023-0071 (rsa "Marvin Attack"): no upstream fix.
+        # The advisory crate is pulled in transitively via `sqlx-mysql`,
+        # which is *never compiled* because our sqlx config sets
+        # default-features = false and enables only the `postgres` backend.
+        # Re-evaluate when the rsa crate ships a fix.
+        run: cargo audit --deny warnings --ignore RUSTSEC-2023-0071

@@ -68,7 +68,7 @@ sha2       = "0.10"
 hex        = "0.4"
 
 # Validation
-validator = { version = "0.18", features = ["derive"] }
+validator = { version = "0.20", features = ["derive"] }
 
 # Type sharing with the frontend
 ts-rs = { version = "10", features = ["uuid-impl", "chrono-impl"] }
