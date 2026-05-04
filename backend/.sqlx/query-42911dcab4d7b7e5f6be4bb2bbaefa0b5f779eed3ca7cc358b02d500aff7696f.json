@@ -1,0 +1,57 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select distinct on (voter_id)\n            id          as \"id: VoteId\",\n            proposal_id as \"proposal_id: ProposalId\",\n            voter_id    as \"voter_id: UserId\",\n            choice      as \"choice: VoteChoice\",\n            cast_at\n        from votes\n        where proposal_id = $1\n        order by voter_id, cast_at desc\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: VoteId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "proposal_id: ProposalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "voter_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "choice: VoteChoice",
+        "type_info": {
+          "Custom": {
+            "name": "vote_choice",
+            "kind": {
+              "Enum": [
+                "yes",
+                "no",
+                "abstain"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "cast_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "42911dcab4d7b7e5f6be4bb2bbaefa0b5f779eed3ca7cc358b02d500aff7696f"
+}

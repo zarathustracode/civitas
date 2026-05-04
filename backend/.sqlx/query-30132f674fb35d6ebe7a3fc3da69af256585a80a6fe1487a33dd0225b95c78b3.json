@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update deliberation_comments\n        set deleted_at = now()\n        where id = $1 and author_id = $2 and deleted_at is null\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "30132f674fb35d6ebe7a3fc3da69af256585a80a6fe1487a33dd0225b95c78b3"
+}

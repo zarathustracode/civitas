@@ -1,0 +1,29 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            update proposals\n            set status = $2, voting_starts_at = $3, voting_ends_at = $4\n            where id = $1\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "proposal_status",
+            "kind": {
+              "Enum": [
+                "draft",
+                "deliberation",
+                "voting",
+                "closed"
+              ]
+            }
+          }
+        },
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "79ff775c636f8f823a56ba826b3d9b6183f389a3d7ca49d38c19bbb105cb2630"
+}

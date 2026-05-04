@@ -1,0 +1,55 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        insert into delegations (id, delegator_id, delegate_id, topic_id)\n        values ($1, $2, $3, $4)\n        returning\n            id           as \"id: DelegationId\",\n            delegator_id as \"delegator_id: UserId\",\n            delegate_id  as \"delegate_id: UserId\",\n            topic_id     as \"topic_id: TopicId\",\n            created_at,\n            revoked_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: DelegationId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "delegator_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "delegate_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "topic_id: TopicId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "revoked_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "1a1c123cdd631cd38831f2e0be1d461e3f9bcb39be84c93fb2bfdbabf600fd48"
+}

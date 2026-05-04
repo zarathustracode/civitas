@@ -16,6 +16,8 @@ macro_rules! id_newtype {
         #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
         #[cfg_attr(feature = "ts-export", derive(ts_rs::TS))]
         #[cfg_attr(feature = "ts-export", ts(export, type = "string"))]
+        #[cfg_attr(feature = "sqlx-impl", derive(sqlx::Type))]
+        #[cfg_attr(feature = "sqlx-impl", sqlx(transparent))]
         #[serde(transparent)]
         pub struct $name(pub Uuid);
 

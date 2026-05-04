@@ -1,0 +1,94 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select\n            id          as \"id: CommentId\",\n            proposal_id as \"proposal_id: ProposalId\",\n            author_id   as \"author_id: UserId\",\n            parent_id   as \"parent_id: CommentId\",\n            body, stance as \"stance: Stance\",\n            created_at, edited_at, deleted_at, hidden_at, hidden_reason\n        from deliberation_comments\n        where proposal_id = $1\n        order by parent_id nulls first, created_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CommentId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "proposal_id: ProposalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "author_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "parent_id: CommentId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "stance: Stance",
+        "type_info": {
+          "Custom": {
+            "name": "comment_stance",
+            "kind": {
+              "Enum": [
+                "support",
+                "oppose",
+                "neutral",
+                "question"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "edited_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "deleted_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "hidden_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "hidden_reason",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "025e89e5419745881228b8a0e2c4eb7451624b5a57fc690852c5545b359dc079"
+}

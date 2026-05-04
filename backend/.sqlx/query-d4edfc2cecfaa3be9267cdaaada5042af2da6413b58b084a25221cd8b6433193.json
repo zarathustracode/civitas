@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select status as \"status: ProposalStatus\" from proposals where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "status: ProposalStatus",
+        "type_info": {
+          "Custom": {
+            "name": "proposal_status",
+            "kind": {
+              "Enum": [
+                "draft",
+                "deliberation",
+                "voting",
+                "closed"
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "d4edfc2cecfaa3be9267cdaaada5042af2da6413b58b084a25221cd8b6433193"
+}

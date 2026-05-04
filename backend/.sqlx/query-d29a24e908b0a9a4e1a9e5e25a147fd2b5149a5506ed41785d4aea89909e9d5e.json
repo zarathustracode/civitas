@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update delegations\n        set revoked_at = now()\n        where id = $1 and revoked_at is null\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d29a24e908b0a9a4e1a9e5e25a147fd2b5149a5506ed41785d4aea89909e9d5e"
+}

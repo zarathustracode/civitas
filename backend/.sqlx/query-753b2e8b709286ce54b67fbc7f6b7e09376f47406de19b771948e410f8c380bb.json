@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update deliberation_comments\n        set hidden_at = now(), hidden_reason = $2\n        where id = $1 and hidden_at is null\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "753b2e8b709286ce54b67fbc7f6b7e09376f47406de19b771948e410f8c380bb"
+}

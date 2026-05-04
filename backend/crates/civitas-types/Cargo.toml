@@ -16,6 +16,10 @@ default = []
 # Emit TypeScript bindings via ts-rs for the SvelteKit frontend.
 # Enabled in CI / local code-gen runs; not required for runtime.
 ts-export = ["dep:ts-rs"]
+# Derive sqlx Type / Encode / Decode for the domain types so query!() macros
+# in civitas-db can bind them directly. Civitas-db enables this; the frontend
+# code-gen run does not.
+sqlx-impl = ["dep:sqlx"]
 
 [dependencies]
 serde      = { workspace = true }
@@ -25,6 +29,7 @@ chrono     = { workspace = true }
 rust_decimal = { workspace = true }
 thiserror  = { workspace = true }
 ts-rs      = { workspace = true, optional = true }
+sqlx       = { workspace = true, optional = true }
 
 [dev-dependencies]
 rust_decimal_macros = "1"

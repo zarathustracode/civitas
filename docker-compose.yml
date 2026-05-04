@@ -1,0 +1,31 @@
+# Local development compose stack.
+# Production deployments use a different stack (see docker/ for build images).
+#
+# Usage:
+#   docker compose up -d db        # start Postgres in background
+#   docker compose stop db         # pause it
+#   docker compose down -v         # remove containers AND data (destructive)
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: civitas-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: civitas
+      POSTGRES_PASSWORD: civitas
+      POSTGRES_DB: civitas
+    ports:
+      - "5432:5432"
+    volumes:
+      - civitas-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civitas -d civitas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  civitas-db-data:
+    name: civitas-db-data

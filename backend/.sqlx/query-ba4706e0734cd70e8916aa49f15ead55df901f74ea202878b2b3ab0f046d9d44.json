@@ -1,0 +1,52 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select\n            id           as \"id: DelegationId\",\n            delegator_id as \"delegator_id: UserId\",\n            delegate_id  as \"delegate_id: UserId\",\n            topic_id     as \"topic_id: TopicId\",\n            created_at,\n            revoked_at\n        from delegations\n        where delegator_id = $1 and revoked_at is null\n        order by created_at desc\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: DelegationId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "delegator_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "delegate_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "topic_id: TopicId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "revoked_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "ba4706e0734cd70e8916aa49f15ead55df901f74ea202878b2b3ab0f046d9d44"
+}

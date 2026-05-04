@@ -12,7 +12,7 @@ description = "Database layer for Civitas. SQLx queries and migrations."
 workspace = true
 
 [dependencies]
-civitas-types = { workspace = true }
+civitas-types = { workspace = true, features = ["sqlx-impl"] }
 civitas-core  = { workspace = true }
 sqlx          = { workspace = true }
 serde         = { workspace = true }

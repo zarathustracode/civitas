@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "update proposals set status = $2 where id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        {
+          "Custom": {
+            "name": "proposal_status",
+            "kind": {
+              "Enum": [
+                "draft",
+                "deliberation",
+                "voting",
+                "closed"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ade0a91807c000210575b2ca4f9d4ecca629ef7717537a7a5c7a866aeb0d67bb"
+}

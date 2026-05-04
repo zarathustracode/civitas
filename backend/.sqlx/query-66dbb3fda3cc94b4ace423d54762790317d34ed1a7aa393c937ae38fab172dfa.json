@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        select id, slug, name, description, created_at\n        from topics\n        order by name asc, slug asc\n        ",
+  "query": "\n        select id as \"id: TopicId\", slug, name, description, created_at\n        from topics\n        where id = $1\n        ",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "id: TopicId",
         "type_info": "Uuid"
       },
       {
@@ -30,7 +30,9 @@
       }
     ],
     "parameters": {
-      "Left": []
+      "Left": [
+        "Uuid"
+      ]
     },
     "nullable": [
       false,
@@ -40,5 +42,5 @@
       false
     ]
   },
-  "hash": "9269af2e081ef83f587b73a11b3811e151c3fd3d851924e1461b7490ae8ee751"
+  "hash": "66dbb3fda3cc94b4ace423d54762790317d34ed1a7aa393c937ae38fab172dfa"
 }

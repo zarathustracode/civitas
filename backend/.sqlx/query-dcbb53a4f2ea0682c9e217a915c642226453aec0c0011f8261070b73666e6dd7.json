@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update password_reset_tokens\n        set consumed_at = now()\n        where token_hash = $1 and consumed_at is null and expires_at > now()\n        returning user_id as \"user_id: UserId\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id: UserId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "dcbb53a4f2ea0682c9e217a915c642226453aec0c0011f8261070b73666e6dd7"
+}

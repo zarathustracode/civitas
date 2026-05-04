@@ -10,6 +10,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[cfg_attr(feature = "ts-export", derive(ts_rs::TS))]
 #[cfg_attr(feature = "ts-export", ts(export))]
+#[cfg_attr(feature = "sqlx-impl", derive(sqlx::Type))]
+#[cfg_attr(
+    feature = "sqlx-impl",
+    sqlx(type_name = "proposal_status", rename_all = "lowercase")
+)]
 #[serde(rename_all = "lowercase")]
 pub enum ProposalStatus {
     Draft,

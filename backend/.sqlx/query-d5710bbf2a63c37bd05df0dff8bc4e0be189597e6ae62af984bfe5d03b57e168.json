@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select proposal_id as \"proposal_id: ProposalId\"\n               from deliberation_comments where id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "proposal_id: ProposalId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "d5710bbf2a63c37bd05df0dff8bc4e0be189597e6ae62af984bfe5d03b57e168"
+}

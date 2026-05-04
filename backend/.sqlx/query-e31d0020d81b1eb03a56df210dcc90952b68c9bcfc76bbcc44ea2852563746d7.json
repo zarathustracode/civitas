@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "select password_hash from users where id = $1 and deleted_at is null",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "password_hash",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e31d0020d81b1eb03a56df210dcc90952b68c9bcfc76bbcc44ea2852563746d7"
+}

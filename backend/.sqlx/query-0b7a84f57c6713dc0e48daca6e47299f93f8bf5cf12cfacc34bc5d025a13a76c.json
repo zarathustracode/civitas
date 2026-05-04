@@ -1,0 +1,99 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        insert into proposals (id, topic_id, title, summary, body, author_id, status)\n        values ($1, $2, $3, $4, $5, $6, 'draft')\n        returning\n            id as \"id: ProposalId\",\n            topic_id as \"topic_id: TopicId\",\n            title, summary, body,\n            author_id as \"author_id: UserId\",\n            status as \"status: ProposalStatus\",\n            voting_starts_at, voting_ends_at,\n            created_at, updated_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: ProposalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "topic_id: TopicId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "title",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "summary",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "author_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 6,
+        "name": "status: ProposalStatus",
+        "type_info": {
+          "Custom": {
+            "name": "proposal_status",
+            "kind": {
+              "Enum": [
+                "draft",
+                "deliberation",
+                "voting",
+                "closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "voting_starts_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "voting_ends_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Text",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "0b7a84f57c6713dc0e48daca6e47299f93f8bf5cf12cfacc34bc5d025a13a76c"
+}

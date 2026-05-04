@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                select id as \"id: UserId\"\n                from users\n                where deleted_at is null and email_verified_at is not null\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: UserId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "15562d102f3c2eb94c709c57c6a3f6644338728f3a4c4c5c6dd17db30f5f0a31"
+}

@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        insert into votes (id, proposal_id, voter_id, choice)\n        values ($1, $2, $3, $4)\n        returning\n            id          as \"id: VoteId\",\n            proposal_id as \"proposal_id: ProposalId\",\n            voter_id    as \"voter_id: UserId\",\n            choice      as \"choice: VoteChoice\",\n            cast_at\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: VoteId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "proposal_id: ProposalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "voter_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
+        "name": "choice: VoteChoice",
+        "type_info": {
+          "Custom": {
+            "name": "vote_choice",
+            "kind": {
+              "Enum": [
+                "yes",
+                "no",
+                "abstain"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "cast_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        {
+          "Custom": {
+            "name": "vote_choice",
+            "kind": {
+              "Enum": [
+                "yes",
+                "no",
+                "abstain"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "1ed8b997a9471296799c274db1312e7c7bbf62f404104f4d40eca082b3ea7027"
+}
