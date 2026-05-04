@@ -16,7 +16,7 @@ pub mod status;
 pub mod weight;
 
 pub use choice::VoteChoice;
-pub use ids::{CommentId, DelegationId, ProposalId, TopicId, UserId, VoteId};
+pub use ids::{AuditLogId, CommentId, DelegationId, ProposalId, TopicId, UserId, VoteId};
 pub use stance::Stance;
 pub use status::ProposalStatus;
 pub use weight::Weight;

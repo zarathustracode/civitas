@@ -102,6 +102,10 @@ id_newtype!(
     /// Stable identifier for a deliberation comment.
     CommentId
 );
+id_newtype!(
+    /// Stable identifier for an audit-log event.
+    AuditLogId
+);
 
 #[cfg(test)]
 mod tests {
