@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent-500;
+  }
+
+  /* Honest minimum line-height for body text. */
+  body {
+    line-height: 1.55;
+  }
+}
+
+@layer components {
+  .prose-civic {
+    @apply max-w-prose space-y-4 text-ink-800;
+  }
+  .prose-civic h1,
+  .prose-civic h2,
+  .prose-civic h3 {
+    @apply text-ink-900;
+  }
+  .prose-civic h1 {
+    @apply text-3xl font-semibold;
+  }
+  .prose-civic h2 {
+    @apply mt-6 text-2xl font-semibold;
+  }
+  .prose-civic h3 {
+    @apply mt-4 text-xl font-semibold;
+  }
+  .prose-civic a {
+    @apply text-accent-600 underline underline-offset-2 hover:text-accent-700;
+  }
+}

@@ -1,0 +1,14 @@
+.DS_Store
+node_modules/
+build/
+.svelte-kit/
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+dist/
+.vite/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
