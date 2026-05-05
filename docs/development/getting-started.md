@@ -70,23 +70,25 @@ SvelteKit dev server runs on `http://localhost:5173`. It proxies API calls to th
 
 ## Seed data
 
-A seed script populates the database with a small set of users, topics, proposals, and a delegation chain so you can exercise the UI immediately.
+A seed script populates the database with a small set of verified users, a topic, and a proposal in deliberation so you can exercise the UI immediately.
 
 ```bash
 cd backend
-cargo run -p civitas-db --bin seed
+DATABASE_URL=postgres://civitas:civitas@localhost:5432/civitas \
+  cargo run -p civitas-api --bin seed
 ```
 
-Default seed accounts:
+Default seed accounts (all email-verified):
 
-| Email                    | Password   | Role                |
-|--------------------------|------------|---------------------|
-| alice@example.com        | civitas123 | regular voter       |
-| bob@example.com          | civitas123 | regular voter       |
-| carol@example.com        | civitas123 | delegate (popular)  |
-| dave@example.com         | civitas123 | proposal author     |
+| Email                    | Password               | Role               |
+|--------------------------|------------------------|--------------------|
+| alice@example.com        | `civitas-dev-pw-v1`    | regular voter      |
+| bob@example.com          | `civitas-dev-pw-v1`    | regular voter      |
+| carol@example.com        | `civitas-dev-pw-v1`    | delegate           |
+| dave@example.com         | `civitas-dev-pw-v1`    | proposal author    |
 
-Seed data is for development only. Never use these credentials on a real deployment.
+The seed script is idempotent — running it twice does nothing the second time.
+**Seed data is for development only.** Never use these credentials on a real deployment.
 
 ## Run the test suite
 

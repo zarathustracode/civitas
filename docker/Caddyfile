@@ -1,0 +1,25 @@
+# Reverse proxy: serves the SvelteKit frontend at the root and forwards
+# /api/* to the Rust API. Same-origin paths keep the session cookie tidy.
+#
+# For a real TLS deployment, replace `:80` with the public hostname (e.g.
+# `civitas.example.org`) and Caddy will obtain a certificate automatically.
+
+:80 {
+    encode zstd gzip
+
+    # API routes — strip the /api prefix before forwarding.
+    handle_path /api/* {
+        reverse_proxy api:8080
+    }
+
+    # Everything else goes to the SvelteKit server.
+    handle {
+        reverse_proxy web:3000
+    }
+
+    log {
+        output stdout
+        format console
+        level INFO
+    }
+}

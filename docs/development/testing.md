@@ -100,9 +100,13 @@ Run locally:
 
 ```bash
 cd frontend
-pnpm exec playwright install --with-deps   # one-time
-pnpm exec playwright test
+pnpm test:e2e:install    # one-time: downloads Chromium
+pnpm test:e2e            # runs both smoke and flow suites
 ```
+
+`smoke.spec.ts` does not need the API; `flow.spec.ts` skips itself
+automatically when the API is unreachable, so the suite is safe in
+API-less CI runs. See `frontend/tests/e2e/README.md` for details.
 
 CI runs E2E against the built backend image and frontend build.
 

@@ -1,0 +1,102 @@
+# Production-style stack: Postgres + API + frontend behind a Caddy reverse proxy.
+#
+# Usage:
+#   cd docker && docker compose up -d --build
+#
+# The reverse proxy serves the frontend at the root and routes /api/* to the
+# Rust API, so the session cookie stays same-origin.
+
+name: civitas
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: civitas-prod-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: civitas
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-civitas}
+      POSTGRES_DB: civitas
+    volumes:
+      - civitas-prod-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U civitas -d civitas"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: civitas-prod-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://civitas:${POSTGRES_PASSWORD:-civitas}@db:5432/civitas
+      DATABASE_MAX_CONNECTIONS: "20"
+      HTTP_LISTEN_ADDR: 0.0.0.0:8080
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      RUST_LOG: civitas=info,tower_http=info,sqlx=warn
+    expose:
+      - "8080"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/bin/sh",
+          "-c",
+          "wget -qO- http://127.0.0.1:8080/health | grep -q '\"status\":\"ok\"'"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: civitas-prod-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      # `ORIGIN` must match the externally visible URL; SvelteKit checks it.
+      ORIGIN: ${PUBLIC_BASE_URL:-http://localhost:8080}
+      PORT: "3000"
+      HOST: 0.0.0.0
+      # SSR fetches go directly to the API container (no proxy hop, no loop
+      # back through the SvelteKit server). The browser still uses the
+      # relative `/api/*` path that the proxy routes.
+      INTERNAL_API_BASE_URL: http://api:8080
+    expose:
+      - "3000"
+
+  proxy:
+    image: caddy:2-alpine
+    container_name: civitas-prod-proxy
+    restart: unless-stopped
+    depends_on:
+      - api
+      - web
+    ports:
+      - "${CIVITAS_HTTP_PORT:-8080}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - civitas-prod-caddy-data:/data
+      - civitas-prod-caddy-config:/config
+
+volumes:
+  civitas-prod-data:
+    name: civitas-prod-data
+  civitas-prod-caddy-data:
+    name: civitas-prod-caddy-data
+  civitas-prod-caddy-config:
+    name: civitas-prod-caddy-config

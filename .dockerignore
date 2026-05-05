@@ -1,0 +1,38 @@
+# Don't ship build artefacts or local state into Docker contexts.
+
+# Rust
+backend/target/
+**/*.rs.bk
+
+# Node / SvelteKit
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+frontend/.vite/
+frontend/coverage/
+
+# Local env
+.env
+.env.*
+!.env.example
+
+# Git / CI / docs (not needed in build context)
+.git/
+.github/
+docs/
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Test outputs
+**/test-results/
+**/playwright-report/
+**/playwright/.cache/
+
+# Misc
+*.log
+*.tmp
+*.bak

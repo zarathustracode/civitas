@@ -4,6 +4,12 @@
  * All API calls funnel through `apiFetch`. Server-side load functions pass
  * the request `fetch` (and the original headers, so cookies forward across
  * the SSR proxy hop). Client-side calls use the global `fetch`.
+ *
+ * Server-side fetches need an absolute URL pointing at the Rust API. Set
+ * `INTERNAL_API_BASE_URL=http://api:8080` (or similar) in the SSR runtime
+ * environment. In dev, omit it — Vite proxies `/api/*` to the API host.
+ * In the browser we always use the relative `/api/*` path, which the
+ * deployment proxy routes to the API.
  */
 
 import { ApiError } from './errors';
@@ -23,7 +29,26 @@ export interface ApiFetchOptions {
   allowUnauthenticated?: boolean;
 }
 
-const BASE_PATH = '/api';
+/** Browser-relative base. */
+const CLIENT_BASE_PATH = '/api';
+
+/**
+ * Resolve the API base for the current execution context.
+ *
+ * In the browser: relative `/api`. The deployment proxy (or Vite in dev)
+ * routes from there to the Rust service.
+ *
+ * On the server: prefer `INTERNAL_API_BASE_URL` (e.g. the api container's
+ * Docker DNS name), so SSR calls go directly to the API and do not loop
+ * back through the SvelteKit server.
+ */
+function apiBase(): string {
+  if (typeof window !== 'undefined') {
+    return CLIENT_BASE_PATH;
+  }
+  const internal = typeof process !== 'undefined' ? process.env?.INTERNAL_API_BASE_URL : undefined;
+  return (internal && internal.replace(/\/+$/, '')) || CLIENT_BASE_PATH;
+}
 
 export async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): Promise<T> {
   const f = opts.fetch ?? fetch;
@@ -63,7 +88,8 @@ export async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions 
 }
 
 function buildUrl(path: string, query?: ApiFetchOptions['query']): string {
-  const base = path.startsWith('/') ? `${BASE_PATH}${path}` : `${BASE_PATH}/${path}`;
+  const root = apiBase();
+  const base = path.startsWith('/') ? `${root}${path}` : `${root}/${path}`;
   if (!query) return base;
   const params = new URLSearchParams();
   for (const [k, v] of Object.entries(query)) {

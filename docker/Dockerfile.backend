@@ -1,0 +1,64 @@
+# syntax=docker/dockerfile:1.7
+#
+# Multi-stage Rust build for civitas-api.
+#
+#   chef     — cargo-chef + base toolchain
+#   planner  — extract a dependency recipe
+#   builder  — build deps from recipe (cached) → build the binary
+#   runtime  — Debian slim with the binary and CA certificates only
+#
+# Build context is the repository root: `docker build -f docker/Dockerfile.backend .`
+# or via docker-compose with `context: ..`.
+
+ARG RUST_VERSION=1.95
+ARG DEBIAN_VERSION=bookworm
+
+# ─── chef ────────────────────────────────────────────────────────────────────
+FROM rust:${RUST_VERSION}-slim-${DEBIAN_VERSION} AS chef
+RUN cargo install cargo-chef --locked --version ^0.1
+WORKDIR /app
+
+# ─── planner ─────────────────────────────────────────────────────────────────
+FROM chef AS planner
+COPY backend /app/backend
+WORKDIR /app/backend
+RUN cargo chef prepare --recipe-path /tmp/recipe.json
+
+# ─── builder ─────────────────────────────────────────────────────────────────
+FROM chef AS builder
+WORKDIR /app/backend
+COPY --from=planner /tmp/recipe.json /tmp/recipe.json
+RUN cargo chef cook --release --recipe-path /tmp/recipe.json
+
+# Bring in the actual sources after the dep cache is warm.
+COPY backend /app/backend
+# SQLx's `query!` macros use the committed `.sqlx/` cache so the build does
+# not need a running Postgres.
+ENV SQLX_OFFLINE=true
+# Build both binaries: the API server and the dev seed script.
+RUN cargo build --release --bin civitas-api --bin seed
+
+# ─── runtime ─────────────────────────────────────────────────────────────────
+FROM debian:${DEBIAN_VERSION}-slim AS runtime
+# `wget` is used only by the docker-compose healthcheck. ~1 MB.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Non-root user for least privilege.
+RUN groupadd --system --gid 1001 civitas \
+    && useradd  --system --uid 1001 --gid civitas civitas
+
+COPY --from=builder /app/backend/target/release/civitas-api /usr/local/bin/civitas-api
+COPY --from=builder /app/backend/target/release/seed         /usr/local/bin/seed
+
+USER civitas
+WORKDIR /home/civitas
+EXPOSE 8080
+
+ENV RUST_LOG=civitas=info,tower_http=info,sqlx=warn
+ENV HTTP_LISTEN_ADDR=0.0.0.0:8080
+
+# `civitas-api` applies migrations on startup, so no separate migration step
+# is required at deploy time.
+ENTRYPOINT ["/usr/local/bin/civitas-api"]
