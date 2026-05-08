@@ -22,3 +22,19 @@ export async function getTally(
     forwardHeaders
   });
 }
+
+/**
+ * The requesting user's full vote-change history on a proposal, newest
+ * first. Index 0 (if any) is the active vote. Auth-required: 401 → null.
+ */
+export async function listMyVotes(
+  proposalId: UUID,
+  customFetch?: typeof fetch,
+  forwardHeaders?: Headers
+): Promise<Vote[] | null> {
+  return apiFetch<Vote[]>(`/proposals/${encodeURIComponent(proposalId)}/votes/mine`, {
+    fetch: customFetch,
+    forwardHeaders,
+    allowUnauthenticated: true
+  });
+}

@@ -132,6 +132,43 @@ pub async fn load_active_for_proposal<'c, E: PgExecutor<'c>>(
         .collect())
 }
 
+/// All votes by `voter_id` on `proposal_id`, newest first. Includes
+/// superseded rows — votes are append-only, so this is the user's full
+/// vote-change history for the proposal.
+pub async fn list_history_for_user<'c, E: PgExecutor<'c>>(
+    conn: E,
+    proposal_id: ProposalId,
+    voter_id: UserId,
+) -> DbResult<Vec<VoteRow>> {
+    let rows = sqlx::query!(
+        r#"
+        select
+            id          as "id: VoteId",
+            proposal_id as "proposal_id: ProposalId",
+            voter_id    as "voter_id: UserId",
+            choice      as "choice: VoteChoice",
+            cast_at
+        from votes
+        where proposal_id = $1 and voter_id = $2
+        order by cast_at desc
+        "#,
+        proposal_id.into_inner(),
+        voter_id.into_inner(),
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| VoteRow {
+            id: r.id,
+            proposal_id: r.proposal_id,
+            voter_id: r.voter_id,
+            choice: r.choice,
+            cast_at: r.cast_at,
+        })
+        .collect())
+}
+
 /// The most-recent vote (if any) cast by `voter_id` on `proposal_id`.
 pub async fn find_active_for_user<'c, E: PgExecutor<'c>>(
     conn: E,

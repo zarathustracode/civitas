@@ -35,6 +35,19 @@ pub async fn cast(
     Ok((StatusCode::CREATED, Json(row.into())))
 }
 
+/// The requesting user's full vote-change history on this proposal,
+/// newest first. Index 0 (if any) is the active vote.
+pub async fn list_mine(
+    State(state): State<AppState>,
+    auth: AuthSession,
+    Path(proposal_id): Path<ProposalId>,
+) -> ApiResult<Json<Vec<VoteResponse>>> {
+    let rows = votes::list_history_for_user(state.pool(), proposal_id, auth.user.id)
+        .await
+        .map_err(ApiError::from)?;
+    Ok(Json(rows.into_iter().map(VoteResponse::from).collect()))
+}
+
 pub async fn tally_handler(
     State(state): State<AppState>,
     OptionalAuth(auth): OptionalAuth,

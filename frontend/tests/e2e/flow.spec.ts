@@ -84,6 +84,15 @@ test('seeded user can cast a vote on the open voting proposal', async ({ page, r
   // The proposal page should now show "How your weight flows" with a Direct entry.
   await expect(page.getByRole('heading', { name: 'How your weight flows' })).toBeVisible();
   await expect(page.getByText(/voted\s+Yes\s+directly/i)).toBeVisible();
+
+  // Change the vote to No: the page should show a "Your previous votes"
+  // section listing the superseded Yes, and the trail should now read No.
+  await page.getByRole('button', { name: 'No', exact: true }).click();
+  await page.getByRole('button', { name: 'Confirm vote' }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Your previous votes on this proposal' })
+  ).toBeVisible();
+  await expect(page.getByText(/voted\s+No\s+directly/i)).toBeVisible();
 });
 
 /**

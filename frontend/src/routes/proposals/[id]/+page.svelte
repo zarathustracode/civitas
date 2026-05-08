@@ -5,6 +5,7 @@
   import TallyDisplay from '$lib/components/TallyDisplay.svelte';
   import VoteInterface from '$lib/components/VoteInterface.svelte';
   import YourTrail from '$lib/components/YourTrail.svelte';
+  import VoteHistory from '$lib/components/VoteHistory.svelte';
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
 
@@ -72,6 +73,7 @@
   </div>
 
   <YourTrail trail={data.tally.your_trail} />
+  <VoteHistory votes={data.myVotes} />
 
   <div>
     <a

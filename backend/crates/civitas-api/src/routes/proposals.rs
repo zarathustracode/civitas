@@ -22,6 +22,7 @@ pub fn router() -> Router<AppState> {
         .route("/:id", get(by_id))
         .route("/:id/status", post(transition_status))
         .route("/:id/votes", post(super::votes::cast))
+        .route("/:id/votes/mine", get(super::votes::list_mine))
         .route("/:id/tally", get(super::votes::tally_handler))
         .route(
             "/:id/comments",
