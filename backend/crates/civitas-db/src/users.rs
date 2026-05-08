@@ -139,6 +139,37 @@ pub async fn list_display_info_by_ids<'c, E: PgExecutor<'c>>(
     Ok(rows.into_iter().map(|r| (r.id, r.display_name)).collect())
 }
 
+/// Substring-match active users by display name or email, returning up to
+/// `limit` rows ordered by display name. The query parameter is matched
+/// case-insensitively. Soft-deleted users are excluded; `exclude` (typically
+/// the calling user) is filtered out so callers don't see themselves in
+/// their own search results. Email is matched but never returned.
+pub async fn search_active_for_delegate<'c, E: PgExecutor<'c>>(
+    conn: E,
+    q: &str,
+    exclude: UserId,
+    limit: i64,
+) -> DbResult<Vec<(UserId, String)>> {
+    let pattern = format!("%{}%", q.replace(['%', '_'], ""));
+    let rows = sqlx::query!(
+        r#"
+        select id as "id: UserId", display_name
+        from users
+        where deleted_at is null
+          and id <> $1
+          and (display_name ilike $2 or email::text ilike $2)
+        order by display_name
+        limit $3
+        "#,
+        exclude.as_uuid(),
+        pattern,
+        limit,
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows.into_iter().map(|r| (r.id, r.display_name)).collect())
+}
+
 pub async fn find_by_email<'c, E: PgExecutor<'c>>(conn: E, email: &str) -> DbResult<Option<User>> {
     let row = sqlx::query_as!(
         User,

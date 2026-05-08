@@ -35,7 +35,8 @@ pub fn router(state: AppState) -> Router {
         .nest("/topics", routes::topics::router())
         .nest("/proposals", routes::proposals::router())
         .nest("/delegations", routes::delegations::router())
-        .nest("/comments", routes::comments::router());
+        .nest("/comments", routes::comments::router())
+        .nest("/users", routes::users::router());
 
     api.with_state(state)
         .layer(SetRequestIdLayer::new(REQUEST_ID_HEADER, MakeRequestUuid))

@@ -2,7 +2,7 @@
   import { enhance } from '$app/forms';
   import type { PageData, ActionData } from './$types';
   import Button from '$lib/components/Button.svelte';
-  import TextField from '$lib/components/TextField.svelte';
+  import UserSearchField from '$lib/components/UserSearchField.svelte';
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
 
@@ -99,11 +99,10 @@
           {/each}
         </select>
       </label>
-      <TextField
+      <UserSearchField
         name="delegate_id"
-        label="Delegate (user ID)"
-        required
-        hint="Enter the UUID of the user you want to delegate to. v0.1 does not yet have a search interface."
+        label="Delegate"
+        hint="Search by display name or email. The directory is restricted to logged-in users."
       />
       <div>
         <Button type="submit" loading={submitting}>Create delegation</Button>
