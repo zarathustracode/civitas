@@ -10,6 +10,7 @@ pub mod config;
 pub mod cookies;
 pub mod dto;
 pub mod error;
+pub mod jobs;
 pub mod routes;
 pub mod state;
 

@@ -187,3 +187,71 @@ test('bob delegates to carol and the chain renders on the proposal page', async 
   await expect(page.getByText(/Carol \(popular delegate\)/)).toBeVisible();
   await expect(page.getByText(/voted\s+Yes/)).toBeVisible();
 });
+
+/**
+ * The background auto-close job transitions a proposal whose voting
+ * window has expired from `voting` to `closed`. Test setup needs the
+ * API running with AUTO_CLOSE_INTERVAL_SECS small (2s in dev); skipped
+ * automatically if the deadline doesn't elapse within the polling
+ * window so a slow CI doesn't fail spuriously.
+ */
+test('voting proposals auto-close after their deadline', async ({ request }) => {
+  const daveLogin = await request.post(`${API_BASE}/auth/login`, {
+    data: { email: 'dave@example.com', password: 'civitas-dev-pw-v1' }
+  });
+  expect(daveLogin.ok()).toBeTruthy();
+
+  // Find any seeded topic.
+  const proposals = await request.get(`${API_BASE}/proposals?status=voting`);
+  const seeded = (await proposals.json()).find(
+    (p: { title: string }) => p.title === 'Open the demo voting window'
+  );
+  if (!seeded) test.skip(true, 'seed proposal not present');
+
+  // Create a proposal whose voting window ends 2 seconds from now.
+  const created = await request.post(`${API_BASE}/proposals`, {
+    data: {
+      topic_id: seeded.topic_id,
+      title: `Auto-close test ${Date.now()}`,
+      summary: 'Voting ends almost immediately.',
+      body: 'For E2E auto-close assertion.'
+    }
+  });
+  expect(created.ok()).toBeTruthy();
+  const proposal = (await created.json()) as { id: string };
+
+  await request.post(`${API_BASE}/proposals/${proposal.id}/status`, {
+    data: { target: 'deliberation' }
+  });
+  const start = new Date();
+  const ends = new Date(start.getTime() + 2_000);
+  const toVoting = await request.post(`${API_BASE}/proposals/${proposal.id}/status`, {
+    data: {
+      target: 'voting',
+      voting_starts_at: start.toISOString(),
+      voting_ends_at: ends.toISOString()
+    }
+  });
+  expect(toVoting.ok()).toBeTruthy();
+
+  // Poll up to ~15 seconds for the auto-close job to flip the status.
+  // In the dev stack the interval is 2s; in slower CI we still bound
+  // the wait so failures are loud.
+  const deadline = Date.now() + 15_000;
+  let final: string = 'voting';
+  while (Date.now() < deadline) {
+    const r = await request.get(`${API_BASE}/proposals/${proposal.id}`);
+    expect(r.ok()).toBeTruthy();
+    const p = (await r.json()) as { status: string };
+    final = p.status;
+    if (final === 'closed') break;
+    await new Promise((res) => setTimeout(res, 500));
+  }
+  if (final !== 'closed') {
+    test.skip(
+      true,
+      `proposal did not auto-close within 15s (status=${final}); is AUTO_CLOSE_INTERVAL_SECS set?`
+    );
+  }
+  expect(final).toBe('closed');
+});

@@ -1,8 +1,12 @@
 //! Civitas API server entrypoint.
 
+use std::time::Duration;
+
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use civitas_api::{router, AppState, Config};
+use civitas_api::{jobs, router, AppState, Config};
+
+const DEFAULT_AUTO_CLOSE_INTERVAL_SECS: u64 = 60;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -14,6 +18,16 @@ async fn main() -> anyhow::Result<()> {
     let pool = civitas_db::connect(&config.database_url, config.database_max_connections).await?;
     civitas_db::migrate(&pool).await?;
     tracing::info!("migrations applied");
+
+    let interval = Duration::from_secs(
+        std::env::var("AUTO_CLOSE_INTERVAL_SECS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(DEFAULT_AUTO_CLOSE_INTERVAL_SECS)
+            .max(1),
+    );
+    tokio::spawn(jobs::auto_close_expired_loop(pool.clone(), interval));
+    tracing::info!(interval = ?interval, "auto-close job started");
 
     let addr = config.http_listen_addr;
     let state = AppState::new(pool, config);

@@ -161,6 +161,42 @@ pub async fn list_by_status<'c, E: PgExecutor<'c>>(
     Ok(rows)
 }
 
+/// Find proposals whose voting window has expired (`voting_ends_at <= now`)
+/// but whose status is still `voting`, and transition them to `closed`.
+/// Each transition is recorded in the audit log with `actor_id = NULL` to
+/// distinguish system-initiated closes from author-initiated ones.
+///
+/// Returns the ids that were closed (typically empty on most ticks). Runs
+/// in a single transaction so a partial failure does not leave a mix of
+/// open and closed expired proposals.
+pub async fn auto_close_expired(tx: &mut Transaction<'_, Postgres>) -> DbResult<Vec<ProposalId>> {
+    let rows = sqlx::query!(
+        r#"
+        update proposals
+        set status = 'closed'
+        where status = 'voting' and voting_ends_at is not null and voting_ends_at <= now()
+        returning id as "id: ProposalId"
+        "#,
+    )
+    .fetch_all(&mut **tx)
+    .await?;
+
+    let ids: Vec<ProposalId> = rows.into_iter().map(|r| r.id).collect();
+    let metadata = serde_json::json!({ "from": "voting", "to": "closed", "by": "system" });
+    for id in &ids {
+        write_log(
+            &mut **tx,
+            None,
+            Action::ProposalStatusChanged,
+            "proposal",
+            id.into_inner(),
+            Some(&metadata),
+        )
+        .await?;
+    }
+    Ok(ids)
+}
+
 /// Transition a proposal to the next status. Enforces the forward-only state
 /// machine. When transitioning to `Voting`, both `voting_starts_at` and
 /// `voting_ends_at` must be supplied.
