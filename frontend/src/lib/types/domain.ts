@@ -32,6 +32,26 @@ export interface Topic {
   created_at: IsoTimestamp;
 }
 
+export interface ProposalCounts {
+  draft: number;
+  deliberation: number;
+  voting: number;
+  closed: number;
+}
+
+export interface TopDelegate {
+  id: UUID;
+  display_name: string;
+  incoming: number;
+}
+
+export interface TopicStats {
+  topic_id: UUID;
+  proposal_counts: ProposalCounts;
+  active_delegations: number;
+  top_delegates: TopDelegate[];
+}
+
 export interface Proposal {
   id: UUID;
   topic_id: UUID;

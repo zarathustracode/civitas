@@ -245,6 +245,57 @@ pub async fn list_active_by_delegator<'c, E: PgExecutor<'c>>(
         .collect())
 }
 
+/// Number of active (non-revoked) delegations on a topic.
+pub async fn count_active_by_topic<'c, E: PgExecutor<'c>>(
+    conn: E,
+    topic_id: TopicId,
+) -> DbResult<i64> {
+    let row = sqlx::query_scalar!(
+        r#"
+        select count(*)::bigint as "count!"
+        from delegations
+        where topic_id = $1 and revoked_at is null
+        "#,
+        topic_id.into_inner(),
+    )
+    .fetch_one(conn)
+    .await?;
+    Ok(row)
+}
+
+/// Top users by incoming active delegations on a topic. Returns the
+/// delegate's id, `display_name`, and the count of active delegations
+/// flowing in. Ordered by incoming count desc, then `display_name` asc.
+/// Limited to `limit` rows. Soft-deleted users are excluded.
+pub async fn top_delegates_by_topic<'c, E: PgExecutor<'c>>(
+    conn: E,
+    topic_id: TopicId,
+    limit: i64,
+) -> DbResult<Vec<(UserId, String, i64)>> {
+    let rows = sqlx::query!(
+        r#"
+        select
+            u.id           as "id: UserId",
+            u.display_name as "display_name!",
+            count(*)::bigint as "incoming!"
+        from delegations d
+        join users u on u.id = d.delegate_id
+        where d.topic_id = $1 and d.revoked_at is null and u.deleted_at is null
+        group by u.id, u.display_name
+        order by count(*) desc, u.display_name asc
+        limit $2
+        "#,
+        topic_id.into_inner(),
+        limit,
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| (r.id, r.display_name, r.incoming))
+        .collect())
+}
+
 /// Take a transaction-scoped advisory lock keyed on the topic. Released
 /// automatically at commit/rollback. Effective range: u64 from the lower
 /// 8 bytes of the topic UUID, reinterpreted as i64 for Postgres' bigint.

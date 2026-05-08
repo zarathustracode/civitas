@@ -37,6 +37,20 @@ test('topics list page renders', async ({ page }) => {
   await expect(page.getByRole('heading', { level: 1, name: 'Topics' })).toBeVisible();
 });
 
+test('topic detail page shows the stats panel for a seeded topic', async ({ page, request }) => {
+  // The stats endpoint requires the topic to exist. Skip if seed didn't run.
+  const apiBase = process.env.E2E_API_BASE_URL || 'http://127.0.0.1:8080';
+  const r = await request.get(`${apiBase}/topics/demo-policy/stats`);
+  if (!r.ok()) test.skip(true, `seed topic 'demo-policy' missing: ${r.status()}`);
+
+  await page.goto('/topics/demo-policy');
+  await expect(page.getByRole('heading', { level: 1, name: 'Demo policy' })).toBeVisible();
+  const stats = page.getByRole('region', { name: 'Topic activity' });
+  await expect(stats.getByText('Proposals')).toBeVisible();
+  await expect(stats.getByText('Active delegations')).toBeVisible();
+  await expect(stats.getByText('Top delegates')).toBeVisible();
+});
+
 test('login form shows required fields', async ({ page }) => {
   await page.goto('/auth/login');
   await expect(page.getByLabel('Email')).toBeVisible();

@@ -135,6 +135,27 @@ pub async fn list_by_topic<'c, E: PgExecutor<'c>>(
     Ok(rows)
 }
 
+/// Per-status count of proposals on a topic. Returns a vector of
+/// `(status, count)` for every status that has at least one row;
+/// missing statuses imply zero. Used by the topic detail page.
+pub async fn count_by_topic_status<'c, E: PgExecutor<'c>>(
+    conn: E,
+    topic_id: TopicId,
+) -> DbResult<Vec<(ProposalStatus, i64)>> {
+    let rows = sqlx::query!(
+        r#"
+        select status as "status: ProposalStatus", count(*)::bigint as "count!"
+        from proposals
+        where topic_id = $1
+        group by status
+        "#,
+        topic_id.into_inner(),
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows.into_iter().map(|r| (r.status, r.count)).collect())
+}
+
 pub async fn list_by_status<'c, E: PgExecutor<'c>>(
     conn: E,
     status: ProposalStatus,

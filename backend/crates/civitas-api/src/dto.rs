@@ -67,6 +67,29 @@ pub struct CreateTopicRequest {
     pub description: String,
 }
 
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct ProposalCounts {
+    pub draft: i64,
+    pub deliberation: i64,
+    pub voting: i64,
+    pub closed: i64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TopDelegate {
+    pub id: UserId,
+    pub display_name: String,
+    pub incoming: i64,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct TopicStatsResponse {
+    pub topic_id: TopicId,
+    pub proposal_counts: ProposalCounts,
+    pub active_delegations: i64,
+    pub top_delegates: Vec<TopDelegate>,
+}
+
 // ── proposals ──────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Serialize)]
