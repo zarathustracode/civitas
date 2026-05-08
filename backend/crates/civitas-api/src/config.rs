@@ -13,6 +13,10 @@ pub struct Config {
     pub http_listen_addr: SocketAddr,
     pub public_base_url: String,
     pub cookie: CookieConfig,
+    /// When true, the register response includes the verification token
+    /// so the dev frontend can pre-fill it. Never enable in production —
+    /// it short-circuits the email-verification ceremony.
+    pub dev_return_verification_token: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -52,6 +56,7 @@ impl Config {
             session_name: optional("COOKIE_SESSION_NAME")
                 .unwrap_or_else(|| "civitas_session".to_string()),
         };
+        let dev_return_verification_token = optional_bool("DEV_RETURN_VERIFICATION_TOKEN", false)?;
 
         Ok(Self {
             database_url,
@@ -59,6 +64,7 @@ impl Config {
             http_listen_addr,
             public_base_url,
             cookie,
+            dev_return_verification_token,
         })
     }
 }

@@ -33,6 +33,34 @@ test('register flow lands on verify-email with success banner', async ({ page })
   await expect(page.getByText(/Account created/i)).toBeVisible();
 });
 
+/**
+ * Full register-to-verified loop. Requires the API to be running with
+ * DEV_RETURN_VERIFICATION_TOKEN=true so the registration response echoes
+ * the token; otherwise the user would have to read it from the API logs.
+ * Skips cleanly on a stricter deployment.
+ */
+test('register → verify with pre-filled dev token → land on login', async ({ page }) => {
+  const email = `e2e-verify-${Date.now()}@example.com`;
+  await page.goto('/auth/register');
+  await page.getByLabel('Display name').fill('Verify Path');
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill('correct-horse-battery-staple-1');
+  await page.getByRole('button', { name: 'Create account' }).click();
+
+  await expect(page).toHaveURL(/\/auth\/verify-email/);
+  const tokenField = page.getByLabel('Verification token');
+  const prefilled = await tokenField.inputValue();
+  if (!prefilled) {
+    test.skip(
+      true,
+      'verification token was not pre-filled; set DEV_RETURN_VERIFICATION_TOKEN=true on the API'
+    );
+  }
+
+  await page.getByRole('button', { name: 'Verify email' }).click();
+  await expect(page).toHaveURL(/\/auth\/login\?verified=1/);
+});
+
 test('login with bad credentials shows the friendly error', async ({ page }) => {
   await page.goto('/auth/login');
   await page.getByLabel('Email').fill('nobody@example.com');

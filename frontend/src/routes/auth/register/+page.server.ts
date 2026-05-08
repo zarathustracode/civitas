@@ -36,6 +36,20 @@ export const actions: Actions = {
       return fail(response.status, { code, email, display_name });
     }
 
-    throw redirect(303, '/auth/verify-email?registered=1');
+    // The API echoes a `dev_verification_token` only when the deployment
+    // explicitly opted in via DEV_RETURN_VERIFICATION_TOKEN. Forward it as
+    // a query param so the verify-email page can pre-fill the input.
+    let token = '';
+    try {
+      const body = (await response.json()) as { dev_verification_token?: string };
+      token = body.dev_verification_token ?? '';
+    } catch {
+      /* the body might be empty in unusual edge cases; ignore */
+    }
+
+    const next = token
+      ? `/auth/verify-email?registered=1&token=${encodeURIComponent(token)}`
+      : '/auth/verify-email?registered=1';
+    throw redirect(303, next);
   }
 };

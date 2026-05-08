@@ -293,6 +293,22 @@ pub struct RegisterRequest {
     pub display_name: String,
 }
 
+/// Successful registration. Mirrors `UserResponse` plus an optional
+/// `dev_verification_token` populated only when
+/// `DEV_RETURN_VERIFICATION_TOKEN=true` — production deployments never
+/// set the field.
+#[derive(Debug, Clone, Serialize)]
+pub struct RegisterResponse {
+    pub id: UserId,
+    pub email: String,
+    pub display_name: String,
+    pub email_verified: bool,
+    pub phone_verified: bool,
+    pub created_at: DateTime<Utc>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dev_verification_token: Option<String>,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct LoginRequest {
     pub email: String,

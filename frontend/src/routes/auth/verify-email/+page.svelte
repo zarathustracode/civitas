@@ -46,7 +46,9 @@
       label="Verification token"
       required
       value={data.prefilledToken}
-      hint="In v0.1 the token is logged to the API server console; copy it from there."
+      hint={data.prefilledToken
+        ? 'Token pre-filled from the registration response (dev mode). Submit to verify.'
+        : 'In production the token arrives by email. In dev with DEV_RETURN_VERIFICATION_TOKEN=true the registration redirect pre-fills it for you.'}
     />
     <Button type="submit" loading={submitting}>Verify email</Button>
   </form>

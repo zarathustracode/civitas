@@ -19,7 +19,7 @@ use crate::auth_extractor::AuthSession;
 use crate::cookies::{clear_session_cookie, session_cookie};
 use crate::dto::{
     LoginRequest, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
-    UserResponse, VerifyEmailRequest,
+    RegisterResponse, UserResponse, VerifyEmailRequest,
 };
 use crate::error::{ApiError, ApiResult};
 use crate::state::AppState;
@@ -44,7 +44,7 @@ pub fn router() -> Router<AppState> {
 async fn register_handler(
     State(state): State<AppState>,
     Json(body): Json<RegisterRequest>,
-) -> ApiResult<(StatusCode, Json<UserResponse>)> {
+) -> ApiResult<(StatusCode, Json<RegisterResponse>)> {
     let registered = register::register(
         state.pool(),
         register::NewRegistration {
@@ -69,8 +69,26 @@ async fn register_handler(
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::NotFound)?;
+    let user: UserResponse = user.into();
 
-    Ok((StatusCode::CREATED, Json(user.into())))
+    let dev_verification_token = if state.config().dev_return_verification_token {
+        Some(registered.verification.plaintext)
+    } else {
+        None
+    };
+
+    Ok((
+        StatusCode::CREATED,
+        Json(RegisterResponse {
+            id: user.id,
+            email: user.email,
+            display_name: user.display_name,
+            email_verified: user.email_verified,
+            phone_verified: user.phone_verified,
+            created_at: user.created_at,
+            dev_verification_token,
+        }),
+    ))
 }
 
 async fn login_handler(
