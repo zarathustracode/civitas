@@ -5,6 +5,11 @@
 #   docker compose up -d db        # start Postgres in background
 #   docker compose stop db         # pause it
 #   docker compose down -v         # remove containers AND data (destructive)
+#
+# `name:` pins the Compose project to civitas-dev so this stack cannot collide
+# with the prod compose in docker/ (which uses project name `civitas`).
+
+name: civitas-dev
 
 services:
   db:

@@ -15,7 +15,7 @@
 
 use std::env;
 
-use chrono::Utc;
+use chrono::{Duration, Utc};
 use civitas_auth::password;
 use civitas_db::{
     proposals::{self, NewProposal},
@@ -116,7 +116,7 @@ async fn main() -> anyhow::Result<()> {
     let existing_proposals = proposals::list_by_topic(&pool, topic.id, None).await?;
     if existing_proposals.is_empty() {
         let mut tx = pool.begin().await?;
-        let proposal = proposals::create(
+        let deliberation = proposals::create(
             &mut tx,
             NewProposal {
                 topic_id: topic.id,
@@ -131,13 +131,47 @@ async fn main() -> anyhow::Result<()> {
         proposals::transition_status(
             &mut tx,
             dave.id,
-            proposal.id,
+            deliberation.id,
             ProposalStatus::Deliberation,
             None,
         )
         .await?;
+
+        let voting = proposals::create(
+            &mut tx,
+            NewProposal {
+                topic_id: topic.id,
+                author_id: dave.id,
+                title: "Open the demo voting window",
+                summary: "A proposal already in the voting phase so the vote happy path is exercisable from seed.",
+                body: "## Voting demo\n\nThis proposal is seeded directly into the **Voting** \
+                       phase with a 7-day window so dev/E2E can cast votes without manually \
+                       transitioning state.\n\n- Vote yes/no/abstain\n- Change your vote during the window",
+            },
+        )
+        .await?;
+        let now = Utc::now();
+        proposals::transition_status(
+            &mut tx,
+            dave.id,
+            voting.id,
+            ProposalStatus::Deliberation,
+            None,
+        )
+        .await?;
+        proposals::transition_status(
+            &mut tx,
+            dave.id,
+            voting.id,
+            ProposalStatus::Voting,
+            Some((now, now + Duration::days(7))),
+        )
+        .await?;
+
         tx.commit().await?;
-        println!("  created proposal '{}' ({})", proposal.title, proposal.id);
+        println!("  created proposal '{}' ({})", deliberation.title, deliberation.id);
+        println!("  created proposal '{}' ({}) — voting until {}",
+            voting.title, voting.id, (now + Duration::days(7)).to_rfc3339());
     } else {
         println!("  proposals already present on topic '{topic_slug}'; skipping");
     }

@@ -25,7 +25,11 @@ test('proposals list page shows status filters', async ({ page }) => {
   await page.goto('/proposals');
   await expect(page.getByRole('heading', { level: 1, name: 'Proposals' })).toBeVisible();
   // The Voting filter is the default — should be the active page.
-  await expect(page.getByRole('link', { name: 'Voting' })).toHaveAttribute('aria-current', 'page');
+  // `exact` so we match the filter pill, not status badges inside proposal cards.
+  await expect(page.getByRole('link', { name: 'Voting', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
 });
 
 test('topics list page renders', async ({ page }) => {
