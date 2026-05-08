@@ -43,6 +43,11 @@ $RECYCLE.BIN/
 *~
 .history/
 
+# --- AI assistant local files ---
+CLAUDE.md
+.claude/
+AGENTS.md
+
 # --- Test / coverage ---
 .nyc_output/
 *.lcov
