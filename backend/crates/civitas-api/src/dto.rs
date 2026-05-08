@@ -153,6 +153,35 @@ pub struct TallyResponse {
     pub abstain: Weight,
     pub eligible_voters: usize,
     pub counted_voters: usize,
+    /// Trail entry for the requesting user, with delegate names resolved.
+    /// `None` for anonymous viewers or users not in the eligible set.
+    pub your_trail: Option<UserTrail>,
+}
+
+/// How the requesting user's weight reaches a vote, with display names.
+/// Mirrors `civitas_core::tally::TrailKind` but resolves UUIDs to names so
+/// the frontend can render without a second round-trip.
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum UserTrail {
+    /// You voted directly.
+    Direct { choice: VoteChoice },
+    /// Your weight flowed through a delegation chain to `terminal`.
+    /// `path` is the intermediate hops (display names), excluding both
+    /// you and the terminal voter.
+    Delegated {
+        path: Vec<NamedUser>,
+        terminal: NamedUser,
+        choice: VoteChoice,
+    },
+    /// Your weight was not counted.
+    NotCounted { reason: String },
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct NamedUser {
+    pub id: UserId,
+    pub display_name: String,
 }
 
 // ── delegations ────────────────────────────────────────────────────────────
@@ -162,6 +191,9 @@ pub struct DelegationResponse {
     pub id: DelegationId,
     pub delegator_id: UserId,
     pub delegate_id: UserId,
+    /// Display name of the delegate. `None` only when the row could not be
+    /// joined (e.g. legacy soft-deleted user); UI should fall back to the id.
+    pub delegate_display_name: Option<String>,
     pub topic_id: TopicId,
     pub created_at: DateTime<Utc>,
     pub revoked_at: Option<DateTime<Utc>>,
@@ -173,6 +205,7 @@ impl From<civitas_db::delegations::DelegationRow> for DelegationResponse {
             id: d.id,
             delegator_id: d.delegator_id,
             delegate_id: d.delegate_id,
+            delegate_display_name: None,
             topic_id: d.topic_id,
             created_at: d.created_at,
             revoked_at: d.revoked_at,

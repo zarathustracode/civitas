@@ -54,6 +54,21 @@ export interface Vote {
   cast_at: IsoTimestamp;
 }
 
+export interface NamedUser {
+  id: UUID;
+  display_name: string;
+}
+
+export type UserTrail =
+  | { kind: 'direct'; choice: VoteChoice }
+  | {
+      kind: 'delegated';
+      path: NamedUser[];
+      terminal: NamedUser;
+      choice: VoteChoice;
+    }
+  | { kind: 'not_counted'; reason: string };
+
 export interface Tally {
   proposal_id: UUID;
   yes: DecimalString;
@@ -61,12 +76,18 @@ export interface Tally {
   abstain: DecimalString;
   eligible_voters: number;
   counted_voters: number;
+  /** Trail entry for the requesting user, names resolved. Null when anonymous
+   * or when the user is not in the eligible set for this proposal. */
+  your_trail: UserTrail | null;
 }
 
 export interface Delegation {
   id: UUID;
   delegator_id: UUID;
   delegate_id: UUID;
+  /** Display name of the delegate (server-resolved). Null if the user row
+   * could not be joined (e.g. legacy soft-deleted user). */
+  delegate_display_name: string | null;
   topic_id: UUID;
   created_at: IsoTimestamp;
   revoked_at: IsoTimestamp | null;

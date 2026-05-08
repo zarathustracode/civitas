@@ -80,4 +80,111 @@ test('seeded user can cast a vote on the open voting proposal', async ({ page, r
   const tallyBody = (await tally.json()) as { yes: string; counted_voters: number };
   expect(parseFloat(tallyBody.yes)).toBeGreaterThanOrEqual(1);
   expect(tallyBody.counted_voters).toBeGreaterThanOrEqual(1);
+
+  // The proposal page should now show "How your weight flows" with a Direct entry.
+  await expect(page.getByRole('heading', { name: 'How your weight flows' })).toBeVisible();
+  await expect(page.getByText(/voted\s+Yes\s+directly/i)).toBeVisible();
+});
+
+/**
+ * Delegation happy path: bob delegates to carol on the demo topic, sees
+ * carol's display name (not a UUID) on /delegations, and on a fresh
+ * voting proposal where bob has not voted directly, the proposal page
+ * shows "your weight flows through carol".
+ *
+ * The test creates a brand-new voting proposal via the API so it can
+ * assume bob has no prior direct vote on it, regardless of what other
+ * tests did.
+ */
+test('bob delegates to carol and the chain renders on the proposal page', async ({
+  page,
+  request
+}) => {
+  // Identify the seeded users.
+  const usersByEmail: Record<string, string> = {};
+  for (const email of ['bob@example.com', 'carol@example.com', 'dave@example.com']) {
+    const login = await request.post(`${API_BASE}/auth/login`, {
+      data: { email, password: 'civitas-dev-pw-v1' }
+    });
+    if (!login.ok()) test.skip(true, `cannot log in as ${email}: ${login.status()}`);
+    const user = (await login.json()) as { id: string };
+    usersByEmail[email] = user.id;
+  }
+
+  // Find the demo topic via the seeded voting proposal.
+  const proposals = await request.get(`${API_BASE}/proposals?status=voting`);
+  const seededVoting = (await proposals.json()).find(
+    (p: { title: string }) => p.title === 'Open the demo voting window'
+  );
+  if (!seededVoting) test.skip(true, 'seed proposal not present');
+
+  // Carol votes Yes on a fresh proposal so the chain has a terminal direct voter.
+  // Dave authors and transitions; Carol casts.
+  const daveLogin = await request.post(`${API_BASE}/auth/login`, {
+    data: { email: 'dave@example.com', password: 'civitas-dev-pw-v1' }
+  });
+  expect(daveLogin.ok()).toBeTruthy();
+  const created = await request.post(`${API_BASE}/proposals`, {
+    data: {
+      topic_id: seededVoting.topic_id,
+      title: `Delegation chain test ${Date.now()}`,
+      summary: 'For E2E delegation chain assertion.',
+      body: 'See test name.'
+    }
+  });
+  expect(created.ok()).toBeTruthy();
+  const newProposal = (await created.json()) as { id: string };
+  const toDel = await request.post(`${API_BASE}/proposals/${newProposal.id}/status`, {
+    data: { target: 'deliberation' }
+  });
+  expect(toDel.ok()).toBeTruthy();
+  const now = new Date();
+  const ends = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const toVoting = await request.post(`${API_BASE}/proposals/${newProposal.id}/status`, {
+    data: {
+      target: 'voting',
+      voting_starts_at: now.toISOString(),
+      voting_ends_at: ends.toISOString()
+    }
+  });
+  expect(toVoting.ok()).toBeTruthy();
+
+  // Carol votes Yes via the API so we don't need browser context for this part.
+  const carolLogin = await request.post(`${API_BASE}/auth/login`, {
+    data: { email: 'carol@example.com', password: 'civitas-dev-pw-v1' }
+  });
+  expect(carolLogin.ok()).toBeTruthy();
+  const carolVote = await request.post(`${API_BASE}/proposals/${newProposal.id}/votes`, {
+    data: { choice: 'yes' }
+  });
+  expect(carolVote.ok()).toBeTruthy();
+
+  // Now Bob (in the browser) delegates to Carol on the demo topic.
+  await page.goto('/auth/login');
+  await page.getByLabel('Email').fill('bob@example.com');
+  await page.getByLabel('Password').fill('civitas-dev-pw-v1');
+  await page.getByRole('button', { name: 'Log in' }).click();
+  await expect(page).toHaveURL(/\/proposals(\?|$)/);
+
+  await page.goto('/delegations');
+  // If a previous run left a delegation in place, revoke it first so we can
+  // re-test the create flow cleanly.
+  const existingRevoke = page.getByRole('button', { name: 'Revoke' }).first();
+  if (await existingRevoke.isVisible()) {
+    await existingRevoke.click();
+  }
+  await page
+    .locator('select[name="topic_id"]')
+    .selectOption({ value: seededVoting.topic_id });
+  await page.getByLabel('Delegate (user ID)').fill(usersByEmail['carol@example.com']);
+  await page.getByRole('button', { name: 'Create delegation' }).click();
+
+  // The active list should show Carol's display name, not a UUID.
+  await expect(page.getByText('Carol (popular delegate)')).toBeVisible();
+
+  // Bob visits the new proposal: trail should resolve through Carol.
+  await page.goto(`/proposals/${newProposal.id}`);
+  await expect(page.getByRole('heading', { name: 'How your weight flows' })).toBeVisible();
+  await expect(page.getByText(/Carol \(popular delegate\)/)).toBeVisible();
+  await expect(page.getByText(/voted\s+Yes/)).toBeVisible();
 });

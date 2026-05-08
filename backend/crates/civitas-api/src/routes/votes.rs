@@ -1,16 +1,18 @@
 //! Vote-cast and tally endpoints — mounted under `/proposals/:id/...` by
 //! [`super::proposals::router`].
 
+use std::collections::HashMap;
+
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::Json;
 
 use civitas_core::{eligibility::EligibilityPolicy, tally as core_tally};
-use civitas_db::{delegations, eligibility, proposals, votes};
-use civitas_types::ProposalId;
+use civitas_db::{delegations, eligibility, proposals, users, votes};
+use civitas_types::{ProposalId, UserId};
 
-use crate::auth_extractor::AuthSession;
-use crate::dto::{CastVoteRequest, TallyResponse, VoteResponse};
+use crate::auth_extractor::{AuthSession, OptionalAuth};
+use crate::dto::{CastVoteRequest, NamedUser, TallyResponse, UserTrail, VoteResponse};
 use crate::error::{ApiError, ApiResult};
 use crate::state::AppState;
 
@@ -35,6 +37,7 @@ pub async fn cast(
 
 pub async fn tally_handler(
     State(state): State<AppState>,
+    OptionalAuth(auth): OptionalAuth,
     Path(proposal_id): Path<ProposalId>,
 ) -> ApiResult<Json<TallyResponse>> {
     let proposal = proposals::find_by_id(state.pool(), proposal_id)
@@ -71,6 +74,12 @@ pub async fn tally_handler(
         })
         .count();
 
+    let your_trail = if let Some(session) = auth {
+        resolve_user_trail(state.pool(), session.user.id, &result.trail).await?
+    } else {
+        None
+    };
+
     Ok(Json(TallyResponse {
         proposal_id,
         yes: result.yes,
@@ -78,5 +87,55 @@ pub async fn tally_handler(
         abstain: result.abstain,
         eligible_voters: eligible.len(),
         counted_voters,
+        your_trail,
     }))
+}
+
+/// Find the requesting user's trail entry and resolve any UUIDs in the
+/// delegation chain to display names. Returns `None` if the user is not in
+/// the trail (i.e. not eligible for this proposal).
+async fn resolve_user_trail(
+    pool: &sqlx::PgPool,
+    user_id: UserId,
+    trail: &[civitas_core::TrailEntry],
+) -> ApiResult<Option<UserTrail>> {
+    let Some(entry) = trail.iter().find(|t| t.user_id == user_id) else {
+        return Ok(None);
+    };
+
+    let resolved = match &entry.kind {
+        civitas_core::TrailKind::Direct { choice } => UserTrail::Direct { choice: *choice },
+        civitas_core::TrailKind::Delegated {
+            path,
+            terminal,
+            choice,
+        } => {
+            let mut needed: Vec<UserId> = path.clone();
+            needed.push(*terminal);
+            let names: HashMap<UserId, String> =
+                users::list_display_info_by_ids(pool, &needed)
+                    .await
+                    .map_err(ApiError::from)?
+                    .into_iter()
+                    .collect();
+            let to_named = |id: UserId| NamedUser {
+                id,
+                display_name: names.get(&id).cloned().unwrap_or_else(|| id.to_string()),
+            };
+            UserTrail::Delegated {
+                path: path.iter().copied().map(to_named).collect(),
+                terminal: to_named(*terminal),
+                choice: *choice,
+            }
+        }
+        civitas_core::TrailKind::NotCounted { reason } => UserTrail::NotCounted {
+            reason: match reason {
+                civitas_core::NotCountedReason::NoDirectVoteInChain => {
+                    "no_direct_vote_in_chain".to_string()
+                }
+                civitas_core::NotCountedReason::DepthExceeded => "depth_exceeded".to_string(),
+            },
+        },
+    };
+    Ok(Some(resolved))
 }

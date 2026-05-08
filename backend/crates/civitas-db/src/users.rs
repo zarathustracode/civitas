@@ -114,6 +114,31 @@ pub async fn find_by_id<'c, E: PgExecutor<'c>>(conn: E, id: UserId) -> DbResult<
     Ok(row)
 }
 
+/// Minimal user info for display: id + `display_name`. Used when joining
+/// against delegations or tally trails where the full `User` payload would
+/// be wasteful. Soft-deleted users are still returned so historical records
+/// (e.g. an old tally) can render the name they had.
+pub async fn list_display_info_by_ids<'c, E: PgExecutor<'c>>(
+    conn: E,
+    ids: &[UserId],
+) -> DbResult<Vec<(UserId, String)>> {
+    if ids.is_empty() {
+        return Ok(Vec::new());
+    }
+    let raw: Vec<uuid::Uuid> = ids.iter().map(|id| *id.as_uuid()).collect();
+    let rows = sqlx::query!(
+        r#"
+        select id as "id: UserId", display_name
+        from users
+        where id = any($1::uuid[])
+        "#,
+        &raw,
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows.into_iter().map(|r| (r.id, r.display_name)).collect())
+}
+
 pub async fn find_by_email<'c, E: PgExecutor<'c>>(conn: E, email: &str) -> DbResult<Option<User>> {
     let row = sqlx::query_as!(
         User,

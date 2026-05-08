@@ -54,7 +54,12 @@
             <div>
               <p class="font-medium">{topicNameFor(d.topic_id)}</p>
               <p class="text-sm text-ink-600">
-                delegated to <code class="font-mono text-xs">{d.delegate_id}</code>
+                delegated to
+                {#if d.delegate_display_name}
+                  <strong>{d.delegate_display_name}</strong>
+                {:else}
+                  <code class="font-mono text-xs">{d.delegate_id}</code>
+                {/if}
               </p>
             </div>
             <form method="POST" action="?/revoke" use:enhance>

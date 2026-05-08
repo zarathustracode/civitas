@@ -1,12 +1,14 @@
 //! Delegation routes.
 
+use std::collections::HashMap;
+
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
 use axum::routing::get;
 use axum::{Json, Router};
 
-use civitas_db::delegations;
-use civitas_types::DelegationId;
+use civitas_db::{delegations, users};
+use civitas_types::{DelegationId, UserId};
 
 use crate::auth_extractor::AuthSession;
 use crate::dto::{CreateDelegationRequest, DelegationResponse};
@@ -26,9 +28,23 @@ async fn list_mine(
     let rows = delegations::list_active_by_delegator(state.pool(), auth.user.id)
         .await
         .map_err(ApiError::from)?;
-    Ok(Json(
-        rows.into_iter().map(DelegationResponse::from).collect(),
-    ))
+
+    let delegate_ids: Vec<UserId> = rows.iter().map(|r| r.delegate_id).collect();
+    let names: HashMap<UserId, String> = users::list_display_info_by_ids(state.pool(), &delegate_ids)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .collect();
+
+    let responses: Vec<DelegationResponse> = rows
+        .into_iter()
+        .map(|row| {
+            let mut resp = DelegationResponse::from(row);
+            resp.delegate_display_name = names.get(&resp.delegate_id).cloned();
+            resp
+        })
+        .collect();
+    Ok(Json(responses))
 }
 
 async fn create(
