@@ -6,6 +6,7 @@
 //! action codes are listed in `Action`; ad-hoc strings are discouraged but
 //! supported via [`write_log_raw`] for cross-cutting cases.
 
+use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
 use sqlx::PgExecutor;
 use uuid::Uuid;
@@ -13,6 +14,61 @@ use uuid::Uuid;
 use civitas_types::{AuditLogId, UserId};
 
 use crate::DbResult;
+
+/// One row of the audit log, as returned by [`list_for_entity`].
+#[derive(Debug, Clone)]
+pub struct AuditRow {
+    pub id: AuditLogId,
+    pub actor_id: Option<UserId>,
+    pub action: String,
+    pub entity_type: String,
+    pub entity_id: Uuid,
+    pub metadata: JsonValue,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Audit rows for a single entity, newest first. Limited to `limit` rows.
+/// The query is backed by `idx_audit_log_entity_created_at`.
+pub async fn list_for_entity<'c, E: PgExecutor<'c>>(
+    conn: E,
+    entity_type: &str,
+    entity_id: Uuid,
+    limit: i64,
+) -> DbResult<Vec<AuditRow>> {
+    let rows = sqlx::query!(
+        r#"
+        select
+            id           as "id: AuditLogId",
+            actor_id     as "actor_id: UserId",
+            action,
+            entity_type,
+            entity_id,
+            metadata     as "metadata!: JsonValue",
+            created_at
+        from audit_log
+        where entity_type = $1 and entity_id = $2
+        order by created_at desc
+        limit $3
+        "#,
+        entity_type,
+        entity_id,
+        limit,
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| AuditRow {
+            id: r.id,
+            actor_id: r.actor_id,
+            action: r.action,
+            entity_type: r.entity_type,
+            entity_id: r.entity_id,
+            metadata: r.metadata,
+            created_at: r.created_at,
+        })
+        .collect())
+}
 
 /// Stable audit action codes.
 ///

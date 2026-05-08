@@ -113,6 +113,16 @@ export interface Delegation {
   revoked_at: IsoTimestamp | null;
 }
 
+export interface AuditEntry {
+  id: UUID;
+  /** `null` for system-initiated events (e.g. auto-close) and for actors
+   * whose user row was soft-deleted. */
+  actor_display_name: string | null;
+  action: string;
+  metadata: Record<string, unknown>;
+  created_at: IsoTimestamp;
+}
+
 export interface Comment {
   id: UUID;
   proposal_id: UUID;

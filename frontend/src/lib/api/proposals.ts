@@ -1,4 +1,4 @@
-import type { Proposal, ProposalStatus, UUID } from '$lib/types/domain';
+import type { AuditEntry, Proposal, ProposalStatus, UUID } from '$lib/types/domain';
 import { apiFetch, type QueryParams } from './client';
 
 export interface ListProposalsParams {
@@ -58,5 +58,21 @@ export async function transitionStatus(
   return apiFetch<Proposal>(`/proposals/${encodeURIComponent(id)}/status`, {
     body: input,
     fetch: customFetch
+  });
+}
+
+/**
+ * Audit timeline for a proposal: lifecycle events (creation, status
+ * transitions) newest first. Public read; the data is not sensitive
+ * because the project's transparency commitment makes it observable.
+ */
+export async function listProposalAudit(
+  id: UUID,
+  customFetch?: typeof fetch,
+  forwardHeaders?: Headers
+): Promise<AuditEntry[]> {
+  return apiFetch<AuditEntry[]>(`/proposals/${encodeURIComponent(id)}/audit`, {
+    fetch: customFetch,
+    forwardHeaders
   });
 }

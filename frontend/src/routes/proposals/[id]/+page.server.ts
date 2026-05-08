@@ -1,6 +1,6 @@
 import { error, fail } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
-import { getProposal } from '$lib/api/proposals';
+import { getProposal, listProposalAudit } from '$lib/api/proposals';
 import { getTally, listMyVotes } from '$lib/api/votes';
 import { listComments } from '$lib/api/comments';
 import { ApiError } from '$lib/api/errors';
@@ -10,13 +10,14 @@ const CHOICES: VoteChoice[] = ['yes', 'no', 'abstain'];
 
 export const load: PageServerLoad = async ({ params, fetch, request, locals }) => {
   try {
-    const [proposal, tally, comments, myVotes] = await Promise.all([
+    const [proposal, tally, comments, myVotes, audit] = await Promise.all([
       getProposal(params.id, fetch, request.headers),
       getTally(params.id, fetch, request.headers),
       listComments(params.id, fetch, request.headers),
-      locals.currentUser ? listMyVotes(params.id, fetch, request.headers) : Promise.resolve(null)
+      locals.currentUser ? listMyVotes(params.id, fetch, request.headers) : Promise.resolve(null),
+      listProposalAudit(params.id, fetch, request.headers)
     ]);
-    return { proposal, tally, comments, myVotes };
+    return { proposal, tally, comments, myVotes, audit };
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) {
       throw error(404, 'Proposal not found');

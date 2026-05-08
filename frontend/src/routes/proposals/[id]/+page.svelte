@@ -7,6 +7,7 @@
   import YourTrail from '$lib/components/YourTrail.svelte';
   import VoteHistory from '$lib/components/VoteHistory.svelte';
   import ProposalResults from '$lib/components/ProposalResults.svelte';
+  import AuditTimeline from '$lib/components/AuditTimeline.svelte';
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
 
@@ -95,4 +96,6 @@
       Deliberation thread ({data.comments.length}) →
     </a>
   </div>
+
+  <AuditTimeline entries={data.audit} />
 </article>

@@ -296,4 +296,13 @@ test('voting proposals auto-close after their deadline and show results', async 
     })
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Cast your vote' })).toHaveCount(0);
+
+  // The audit timeline should record at least three events: created,
+  // → deliberation, → voting, plus the system auto-close. Open the
+  // disclosure and assert the system close is present.
+  const summary = page.getByText(/Audit timeline \(\d+\)/);
+  await expect(summary).toBeVisible();
+  await summary.click();
+  await expect(page.getByText('auto: voting → closed')).toBeVisible();
+  await expect(page.getByText('by system')).toBeVisible();
 });

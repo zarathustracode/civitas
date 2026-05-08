@@ -1,20 +1,26 @@
 //! Proposal routes — including the per-proposal vote and tally endpoints,
 //! delegated to [`super::votes`] for the actual logic.
 
+use std::collections::HashMap;
+
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 
-use civitas_types::{ProposalId, ProposalStatus, TopicId};
+use civitas_types::{ProposalId, ProposalStatus, TopicId, UserId};
 
-use civitas_db::proposals;
+use civitas_db::{audit, proposals, users};
 
 use crate::auth_extractor::AuthSession;
-use crate::dto::{CreateProposalRequest, ProposalResponse, TransitionStatusRequest};
+use crate::dto::{
+    AuditEntryResponse, CreateProposalRequest, ProposalResponse, TransitionStatusRequest,
+};
 use crate::error::{ApiError, ApiResult};
 use crate::state::AppState;
+
+const AUDIT_LIMIT: i64 = 200;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -24,6 +30,7 @@ pub fn router() -> Router<AppState> {
         .route("/:id/votes", post(super::votes::cast))
         .route("/:id/votes/mine", get(super::votes::list_mine))
         .route("/:id/tally", get(super::votes::tally_handler))
+        .route("/:id/audit", get(audit_handler))
         .route(
             "/:id/comments",
             get(super::comments::list).post(super::comments::create),
@@ -63,6 +70,45 @@ async fn by_id(
         .map_err(ApiError::from)?
         .ok_or(ApiError::NotFound)?;
     Ok(Json(p.into()))
+}
+
+/// Audit timeline for a proposal: events whose `entity_type` is `proposal`
+/// and whose `entity_id` matches. Vote/comment/delegation events are *not*
+/// surfaced here — they live under their own entity ids and have their own
+/// UI surfaces.
+async fn audit_handler(
+    State(state): State<AppState>,
+    Path(id): Path<ProposalId>,
+) -> ApiResult<Json<Vec<AuditEntryResponse>>> {
+    // Confirm the proposal exists so we don't leak existence via the audit
+    // endpoint when the id is wrong.
+    proposals::find_by_id(state.pool(), id)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::NotFound)?;
+
+    let rows = audit::list_for_entity(state.pool(), "proposal", id.into_inner(), AUDIT_LIMIT)
+        .await
+        .map_err(ApiError::from)?;
+
+    let actor_ids: Vec<UserId> = rows.iter().filter_map(|r| r.actor_id).collect();
+    let names: HashMap<UserId, String> = users::list_display_info_by_ids(state.pool(), &actor_ids)
+        .await
+        .map_err(ApiError::from)?
+        .into_iter()
+        .collect();
+
+    let entries: Vec<AuditEntryResponse> = rows
+        .into_iter()
+        .map(|r| AuditEntryResponse {
+            id: r.id,
+            actor_display_name: r.actor_id.and_then(|id| names.get(&id).cloned()),
+            action: r.action,
+            metadata: r.metadata,
+            created_at: r.created_at,
+        })
+        .collect();
+    Ok(Json(entries))
 }
 
 async fn create(

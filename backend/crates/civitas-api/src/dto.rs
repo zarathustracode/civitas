@@ -284,6 +284,20 @@ pub struct CreateCommentRequest {
     pub stance: Stance,
 }
 
+// ── audit log ──────────────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct AuditEntryResponse {
+    pub id: civitas_types::AuditLogId,
+    /// Actor's display name, or `null` for system-initiated events
+    /// (auto-close, scheduled cleanups) and for actors whose user row was
+    /// soft-deleted.
+    pub actor_display_name: Option<String>,
+    pub action: String,
+    pub metadata: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+}
+
 // ── auth ───────────────────────────────────────────────────────────────────
 
 #[derive(Debug, Clone, Deserialize)]
