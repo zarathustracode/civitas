@@ -195,7 +195,10 @@ test('bob delegates to carol and the chain renders on the proposal page', async 
  * automatically if the deadline doesn't elapse within the polling
  * window so a slow CI doesn't fail spuriously.
  */
-test('voting proposals auto-close after their deadline', async ({ request }) => {
+test('voting proposals auto-close after their deadline and show results', async ({
+  page,
+  request
+}) => {
   const daveLogin = await request.post(`${API_BASE}/auth/login`, {
     data: { email: 'dave@example.com', password: 'civitas-dev-pw-v1' }
   });
@@ -254,4 +257,15 @@ test('voting proposals auto-close after their deadline', async ({ request }) => 
     );
   }
   expect(final).toBe('closed');
+
+  // Visit the closed proposal: the results banner should render with the
+  // "No verdict" copy (no eligible user voted in the 2-second window) and
+  // the "Cast your vote" UI must not be present.
+  await page.goto(`/proposals/${proposal.id}`);
+  await expect(
+    page.getByRole('heading', {
+      name: /No verdict|Yes \(|No \(|Abstain \(|Tie/
+    })
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Cast your vote' })).toHaveCount(0);
 });

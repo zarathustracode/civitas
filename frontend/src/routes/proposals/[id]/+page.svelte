@@ -6,6 +6,7 @@
   import VoteInterface from '$lib/components/VoteInterface.svelte';
   import YourTrail from '$lib/components/YourTrail.svelte';
   import VoteHistory from '$lib/components/VoteHistory.svelte';
+  import ProposalResults from '$lib/components/ProposalResults.svelte';
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
 
@@ -63,14 +64,25 @@
     <p class="whitespace-pre-line">{data.proposal.body}</p>
   </section>
 
-  <div class="grid gap-4 md:grid-cols-2">
-    <div class="rounded-lg border border-ink-200 bg-white p-4">
-      <VoteInterface {canVote} notVotingReason={cantVoteReason} onSuccess={() => invalidateAll()} />
-    </div>
+  {#if data.proposal.status === 'closed'}
+    <ProposalResults proposal={data.proposal} tally={data.tally} />
     <div class="rounded-lg border border-ink-200 bg-white p-4">
       <TallyDisplay tally={data.tally} />
     </div>
-  </div>
+  {:else}
+    <div class="grid gap-4 md:grid-cols-2">
+      <div class="rounded-lg border border-ink-200 bg-white p-4">
+        <VoteInterface
+          {canVote}
+          notVotingReason={cantVoteReason}
+          onSuccess={() => invalidateAll()}
+        />
+      </div>
+      <div class="rounded-lg border border-ink-200 bg-white p-4">
+        <TallyDisplay tally={data.tally} />
+      </div>
+    </div>
+  {/if}
 
   <YourTrail trail={data.tally.your_trail} />
   <VoteHistory votes={data.myVotes} />
