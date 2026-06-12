@@ -11,6 +11,7 @@ pub mod cookies;
 pub mod dto;
 pub mod error;
 pub mod jobs;
+pub mod mailer;
 pub mod routes;
 pub mod state;
 

@@ -7,7 +7,6 @@
   import type { ActionData, PageData } from './$types';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
-
   let submitting = $state(false);
 
   const errorMessage = $derived(
@@ -16,20 +15,14 @@
 </script>
 
 <svelte:head>
-  <title>Log in — Civitas</title>
+  <title>Reset password — Civitas</title>
 </svelte:head>
 
 <section class="prose-civic">
-  <h1>Log in</h1>
+  <h1>Choose a new password</h1>
 
-  {#if data.verified}
-    <Banner tone="success" title="Email verified">You can now log in.</Banner>
-  {/if}
-  {#if data.reset}
-    <Banner tone="success" title="Password changed">Log in with your new password.</Banner>
-  {/if}
   {#if errorMessage}
-    <Banner tone="error" title="Login failed">{errorMessage}</Banner>
+    <Banner tone="error" title="Reset failed">{errorMessage}</Banner>
   {/if}
 
   <form
@@ -44,31 +37,28 @@
     }}
   >
     <TextField
-      name="email"
-      label="Email"
-      type="email"
+      name="token"
+      label="Reset token"
       required
-      autocomplete="email"
-      value={form?.email ?? ''}
+      value={data.prefilledToken}
+      hint={data.prefilledToken
+        ? 'Token pre-filled from the link in your email.'
+        : 'Paste the token from the reset email, or follow the link in it.'}
     />
     <TextField
-      name="password"
-      label="Password"
+      name="new_password"
+      label="New password"
       type="password"
       required
-      autocomplete="current-password"
+      autocomplete="new-password"
       minlength={12}
+      hint="At least 12 characters. Longer is better than complex."
     />
     <div class="flex items-center justify-between">
-      <Button type="submit" loading={submitting}>Log in</Button>
-      <div class="flex gap-4 text-sm">
-        <a href="/auth/forgot-password" class="text-accent-600 hover:underline">
-          Forgot password?
-        </a>
-        <a href="/auth/register" class="text-accent-600 hover:underline">
-          Don't have an account?
-        </a>
-      </div>
+      <Button type="submit" loading={submitting}>Reset password</Button>
+      <a href="/auth/forgot-password" class="text-sm text-accent-600 hover:underline">
+        Need a new link?
+      </a>
     </div>
   </form>
 </section>

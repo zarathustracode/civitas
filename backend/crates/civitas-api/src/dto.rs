@@ -335,6 +335,11 @@ pub struct VerifyEmailRequest {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct ResendVerificationRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct PasswordResetRequest {
     pub email: String,
 }

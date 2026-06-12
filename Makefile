@@ -4,7 +4,7 @@ SHELL := /usr/bin/env bash
 # Shared dev targets. Works under Git Bash (Windows), macOS, and Linux.
 
 .PHONY: help setup dev backend-dev frontend-dev test backend-test frontend-test \
-        lint fmt audit migrate db-up db-down db-reset clean
+        lint fmt audit migrate db-up db-down db-reset mail-up mail-down clean
 
 help: ## Show this help.
 	@awk 'BEGIN {FS = ":.*##"; printf "Targets:\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -53,6 +53,12 @@ db-down: ## Stop local Postgres.
 
 db-reset: ## Drop, recreate, and re-migrate the dev database.
 	cd backend && sqlx database drop -y && sqlx database create && sqlx migrate run
+
+mail-up: ## Start the dev mail catcher (Mailpit, UI on http://localhost:8025).
+	docker compose up -d mailpit
+
+mail-down: ## Stop the dev mail catcher.
+	docker compose stop mailpit
 
 clean: ## Remove build artifacts.
 	cd backend && cargo clean

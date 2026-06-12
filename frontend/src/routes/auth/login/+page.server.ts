@@ -2,11 +2,14 @@ import { fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { forwardSetCookie } from '$lib/server/cookieBridge';
 
-export const load: PageServerLoad = ({ locals }) => {
+export const load: PageServerLoad = ({ locals, url }) => {
   if (locals.currentUser) {
     throw redirect(303, '/proposals');
   }
-  return {};
+  return {
+    verified: url.searchParams.get('verified') === '1',
+    reset: url.searchParams.get('reset') === '1'
+  };
 };
 
 export const actions: Actions = {

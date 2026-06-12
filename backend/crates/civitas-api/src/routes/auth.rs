@@ -1,9 +1,9 @@
 //! Authentication routes.
 //!
-//! Registration emits a verification token; in v1 we log it via `tracing` so
-//! local development can copy it from console output. SMTP integration lands
-//! in a later session — at that point the token reaches the user via email
-//! and the log line is removed.
+//! Registration and password reset issue tokens and hand them to the
+//! mailer (`crate::mailer`); delivery runs in the background so handlers
+//! never block on SMTP. Endpoints that take an email address respond
+//! identically whether or not an account exists — no enumeration.
 
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -19,9 +19,10 @@ use crate::auth_extractor::AuthSession;
 use crate::cookies::{clear_session_cookie, session_cookie};
 use crate::dto::{
     LoginRequest, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
-    RegisterResponse, UserResponse, VerifyEmailRequest,
+    RegisterResponse, ResendVerificationRequest, UserResponse, VerifyEmailRequest,
 };
 use crate::error::{ApiError, ApiResult};
+use crate::mailer;
 use crate::state::AppState;
 
 pub fn router() -> Router<AppState> {
@@ -31,6 +32,7 @@ pub fn router() -> Router<AppState> {
         .route("/logout", post(logout_handler))
         .route("/me", get(me_handler))
         .route("/verify-email", post(verify_email_handler))
+        .route("/resend-verification", post(resend_verification_handler))
         .route(
             "/password-reset/request",
             post(password_reset_request_handler),
@@ -57,18 +59,20 @@ async fn register_handler(
     .await
     .map_err(ApiError::from)?;
 
-    // v1: surface the token via tracing so local dev can copy it. SMTP
-    // integration removes this line.
-    tracing::info!(
-        user_id = %registered.user_id,
-        token = %registered.verification.plaintext,
-        "issued email verification token (dev: log only)"
-    );
-
     let user = civitas_db::users::find_by_id(state.pool(), registered.user_id)
         .await
         .map_err(ApiError::from)?
         .ok_or(ApiError::NotFound)?;
+
+    mailer::send_in_background(
+        state.mailer(),
+        mailer::verification_mail(
+            &state.config().public_base_url,
+            &user.email,
+            &registered.verification.plaintext,
+        ),
+    );
+
     let user: UserResponse = user.into();
 
     let dev_verification_token = if state.config().dev_return_verification_token {
@@ -153,6 +157,38 @@ async fn verify_email_handler(
     Ok(Json(result.user.into()))
 }
 
+async fn resend_verification_handler(
+    State(state): State<AppState>,
+    Json(body): Json<ResendVerificationRequest>,
+) -> ApiResult<StatusCode> {
+    // We deliberately do not reveal whether the email matched a user.
+    let user = civitas_db::users::find_by_email(state.pool(), &body.email)
+        .await
+        .map_err(ApiError::from)?;
+
+    if let Some(user) = user {
+        if user.is_active() && !user.is_email_verified() {
+            let mut tx = state.pool().begin().await.map_err(ApiError::from)?;
+            let issued = state
+                .email_verification()
+                .initiate(&mut tx, user.id, &user.email)
+                .await
+                .map_err(ApiError::from)?;
+            tx.commit().await.map_err(ApiError::from)?;
+
+            mailer::send_in_background(
+                state.mailer(),
+                mailer::verification_mail(
+                    &state.config().public_base_url,
+                    &user.email,
+                    &issued.plaintext,
+                ),
+            );
+        }
+    }
+    Ok(StatusCode::ACCEPTED)
+}
+
 async fn password_reset_request_handler(
     State(state): State<AppState>,
     Json(body): Json<PasswordResetRequest>,
@@ -166,9 +202,13 @@ async fn password_reset_request_handler(
     .await
     .map_err(ApiError::from)?
     {
-        tracing::info!(
-            token = %issued.plaintext,
-            "issued password reset token (dev: log only)"
+        mailer::send_in_background(
+            state.mailer(),
+            mailer::password_reset_mail(
+                &state.config().public_base_url,
+                &body.email,
+                &issued.plaintext,
+            ),
         );
     }
     Ok(StatusCode::ACCEPTED)

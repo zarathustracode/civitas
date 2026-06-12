@@ -3,6 +3,7 @@
 #
 # Usage:
 #   docker compose up -d db        # start Postgres in background
+#   docker compose up -d mailpit   # start the dev mail catcher (UI on :8025)
 #   docker compose stop db         # pause it
 #   docker compose down -v         # remove containers AND data (destructive)
 #
@@ -30,6 +31,17 @@ services:
       timeout: 5s
       retries: 10
       start_period: 10s
+
+  # Dev mail catcher: the API delivers to SMTP_HOST=localhost:1025 with
+  # SMTP_TLS=none; read messages at http://localhost:8025. Optional — without
+  # SMTP_HOST set the API logs outbound mail instead.
+  mailpit:
+    image: axllent/mailpit
+    container_name: civitas-mailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025" # SMTP
+      - "8025:8025" # web UI
 
 volumes:
   civitas-db-data:

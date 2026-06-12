@@ -43,6 +43,14 @@ export async function verifyEmail(token: string, customFetch?: typeof fetch): Pr
   return apiFetch<User>('/auth/verify-email', { body: { token }, fetch: customFetch });
 }
 
+/**
+ * Ask the API to email a fresh verification link. Responds 202 whether or
+ * not the address matches an account (no enumeration).
+ */
+export async function resendVerification(email: string, customFetch?: typeof fetch): Promise<void> {
+  await apiFetch('/auth/resend-verification', { body: { email }, fetch: customFetch });
+}
+
 export async function requestPasswordReset(
   email: string,
   customFetch?: typeof fetch

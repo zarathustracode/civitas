@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
 
-use civitas_api::{jobs, router, AppState, Config};
+use civitas_api::{jobs, mailer, router, AppState, Config};
 
 const DEFAULT_AUTO_CLOSE_INTERVAL_SECS: u64 = 60;
 
@@ -29,8 +29,10 @@ async fn main() -> anyhow::Result<()> {
     tokio::spawn(jobs::auto_close_expired_loop(pool.clone(), interval));
     tracing::info!(interval = ?interval, "auto-close job started");
 
+    let outbound_mailer = mailer::build_mailer(&config.mail)?;
+
     let addr = config.http_listen_addr;
-    let state = AppState::new(pool, config);
+    let state = AppState::new(pool, config, outbound_mailer);
     let app = router(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

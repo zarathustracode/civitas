@@ -39,3 +39,4 @@ tracing-subscriber = { workspace = true }
 uuid       = { workspace = true }
 chrono     = { workspace = true }
 validator  = { workspace = true }
+lettre     = { workspace = true }
