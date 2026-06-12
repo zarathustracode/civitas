@@ -4,7 +4,7 @@ The political and ethical commitments that shape Civitas.
 
 ## Source
 
-The foundational text is **"The Community Restored Manifesto"** by Nebojša Gašparović, included in this directory as PDF and DOCX. A markdown transcription is forthcoming and will live alongside those files when complete.
+The foundational text is **"The Community Restored Manifesto"** by Nebojša Gašparović, included in this directory as PDF and DOCX, with a faithful [markdown transcription](./The_Community_Restored_Manifesto.md) alongside them. The PDF and DOCX remain the authoritative artifacts; the transcription exists so the text is readable, linkable, and diffable in the repository.
 
 The manifesto is the authoritative source. This README and the rest of the documentation are downstream of it. Where this code or these docs appear to drift from the manifesto, the manifesto wins and the divergence is a bug.
 
