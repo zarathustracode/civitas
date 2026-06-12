@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select status as \"status: ProposalStatus\", count(*)::bigint as \"count!\"\n        from proposals\n        where topic_id = $1\n        group by status\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "status: ProposalStatus",
+        "type_info": {
+          "Custom": {
+            "name": "proposal_status",
+            "kind": {
+              "Enum": [
+                "draft",
+                "deliberation",
+                "voting",
+                "closed"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "a516bc8b6f3c8a13476365985a4ec5d5176a8aec19b376103726fdf60e939589"
+}

@@ -1,0 +1,60 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select\n            id           as \"id: AuditLogId\",\n            actor_id     as \"actor_id: UserId\",\n            action,\n            entity_type,\n            entity_id,\n            metadata     as \"metadata!: JsonValue\",\n            created_at\n        from audit_log\n        where entity_type = $1 and entity_id = $2\n        order by created_at desc\n        limit $3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: AuditLogId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "actor_id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "action",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "entity_type",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "entity_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 5,
+        "name": "metadata!: JsonValue",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Uuid",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "fcd664a82b8d9310ef73e094a9f9919e9a54a8701130bd781798df1964c69a34"
+}

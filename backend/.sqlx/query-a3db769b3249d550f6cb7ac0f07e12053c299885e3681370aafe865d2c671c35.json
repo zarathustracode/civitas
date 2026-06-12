@@ -1,0 +1,30 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select id as \"id: UserId\", display_name\n        from users\n        where deleted_at is null\n          and id <> $1\n          and (display_name ilike $2 or email::text ilike $2)\n        order by display_name\n        limit $3\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: UserId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "display_name",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "a3db769b3249d550f6cb7ac0f07e12053c299885e3681370aafe865d2c671c35"
+}

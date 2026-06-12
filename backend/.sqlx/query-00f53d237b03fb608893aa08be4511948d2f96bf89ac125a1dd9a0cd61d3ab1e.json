@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update proposals\n        set status = 'closed'\n        where status = 'voting' and voting_ends_at is not null and voting_ends_at <= now()\n        returning id as \"id: ProposalId\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: ProposalId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "00f53d237b03fb608893aa08be4511948d2f96bf89ac125a1dd9a0cd61d3ab1e"
+}

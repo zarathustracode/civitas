@@ -71,4 +71,5 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test --run
+      # `--` forwards --run to vitest; without it pnpm rejects the flag.
+      - run: pnpm test -- --run
