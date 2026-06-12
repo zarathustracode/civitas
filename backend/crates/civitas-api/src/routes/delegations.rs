@@ -30,11 +30,12 @@ async fn list_mine(
         .map_err(ApiError::from)?;
 
     let delegate_ids: Vec<UserId> = rows.iter().map(|r| r.delegate_id).collect();
-    let names: HashMap<UserId, String> = users::list_display_info_by_ids(state.pool(), &delegate_ids)
-        .await
-        .map_err(ApiError::from)?
-        .into_iter()
-        .collect();
+    let names: HashMap<UserId, String> =
+        users::list_display_info_by_ids(state.pool(), &delegate_ids)
+            .await
+            .map_err(ApiError::from)?
+            .into_iter()
+            .collect();
 
     let responses: Vec<DelegationResponse> = rows
         .into_iter()

@@ -43,7 +43,7 @@
         {#each stats.top_delegates as d (d.id)}
           <li class="flex items-baseline justify-between gap-2">
             <span>{d.display_name}</span>
-            <span class="tabular-nums text-xs text-ink-600">{d.incoming}</span>
+            <span class="text-xs tabular-nums text-ink-600">{d.incoming}</span>
           </li>
         {/each}
       </ol>

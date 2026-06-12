@@ -33,10 +33,9 @@ async fn search(
     if trimmed.len() < MIN_QUERY_LEN {
         return Ok(Json(Vec::new()));
     }
-    let rows =
-        users::search_active_for_delegate(state.pool(), trimmed, auth.user.id, SEARCH_LIMIT)
-            .await
-            .map_err(ApiError::from)?;
+    let rows = users::search_active_for_delegate(state.pool(), trimmed, auth.user.id, SEARCH_LIMIT)
+        .await
+        .map_err(ApiError::from)?;
     Ok(Json(
         rows.into_iter()
             .map(|(id, display_name)| NamedUser { id, display_name })

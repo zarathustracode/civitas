@@ -85,7 +85,10 @@ test('seeded user can cast a vote on the open voting proposal', async ({ page, r
     (p: Proposal) => p.title === 'Open the demo voting window'
   );
   if (!seeded) {
-    test.skip(true, 'seed proposal "Open the demo voting window" not present; run `cargo run -p civitas-api --bin seed`');
+    test.skip(
+      true,
+      'seed proposal "Open the demo voting window" not present; run `cargo run -p civitas-api --bin seed`'
+    );
   }
 
   await page.goto('/auth/login');
@@ -199,9 +202,7 @@ test('bob delegates to carol and the chain renders on the proposal page', async 
   if (await existingRevoke.isVisible()) {
     await existingRevoke.click();
   }
-  await page
-    .locator('select[name="topic_id"]')
-    .selectOption({ value: seededVoting.topic_id });
+  await page.locator('select[name="topic_id"]').selectOption({ value: seededVoting.topic_id });
   await page.getByLabel('Delegate', { exact: true }).fill('carol');
   await page.getByRole('option', { name: 'Carol (popular delegate)' }).click();
   await page.getByRole('button', { name: 'Create delegation' }).click();

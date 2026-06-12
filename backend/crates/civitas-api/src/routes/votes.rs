@@ -125,12 +125,11 @@ async fn resolve_user_trail(
         } => {
             let mut needed: Vec<UserId> = path.clone();
             needed.push(*terminal);
-            let names: HashMap<UserId, String> =
-                users::list_display_info_by_ids(pool, &needed)
-                    .await
-                    .map_err(ApiError::from)?
-                    .into_iter()
-                    .collect();
+            let names: HashMap<UserId, String> = users::list_display_info_by_ids(pool, &needed)
+                .await
+                .map_err(ApiError::from)?
+                .into_iter()
+                .collect();
             let to_named = |id: UserId| NamedUser {
                 id,
                 display_name: names.get(&id).cloned().unwrap_or_else(|| id.to_string()),

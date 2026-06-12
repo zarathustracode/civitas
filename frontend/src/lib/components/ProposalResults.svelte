@@ -66,7 +66,7 @@
       {choiceLabel[outcome.leader]} ({outcome.pct.toFixed(0)}%)
     {/if}
   </h2>
-  <p class="mt-1 text-sm text-ink-700">
+  <p class="text-ink-700 mt-1 text-sm">
     {tally.counted_voters} of {tally.eligible_voters} eligible voters counted{#if closedAt}
       · closed {closedAt}{/if}.
   </p>

@@ -8,6 +8,8 @@ yarn.lock
 dist/
 .vite/
 coverage/
+test-results/
+playwright-report/
 *.log
 .env
 .env.*

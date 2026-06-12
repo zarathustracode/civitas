@@ -33,7 +33,7 @@
       {#each superseded as v (v.id)}
         <li class="flex items-baseline justify-between gap-3">
           <span><strong>{choiceLabel[v.choice]}</strong></span>
-          <span class="tabular-nums text-xs text-ink-600">{fmt(v.cast_at)}</span>
+          <span class="text-xs tabular-nums text-ink-600">{fmt(v.cast_at)}</span>
         </li>
       {/each}
     </ol>
