@@ -80,8 +80,10 @@ lettre = { version = "0.11", default-features = false, features = [
     "tokio1-rustls-tls",
 ] }
 
-# Validation
-validator = { version = "0.20", features = ["derive"] }
+# Validation. The `derive` feature stays off: nothing uses
+# #[derive(Validate)], and the derive macro pulls in the unmaintained
+# proc-macro-error2 (RUSTSEC-2026-0173).
+validator = "0.20"
 
 # Type sharing with the frontend
 ts-rs = { version = "10", features = ["uuid-impl", "chrono-impl"] }
