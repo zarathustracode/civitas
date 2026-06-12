@@ -6,18 +6,18 @@ A living document. Versions are aspirational, not committed dates. The order is 
 
 The minimum viable instance that demonstrates the model end-to-end on a single deployment.
 
-- [ ] Repository scaffolding, license, governance, contributing
-- [ ] PostgreSQL schema (users, topics, proposals, votes, delegations, comments, audit_log)
-- [ ] `civitas-core`: tally + cycle detection with thorough tests
-- [ ] `civitas-db`: SQLx queries for all v1 operations
-- [ ] `civitas-auth`: registration, login, email verification, sessions
-- [ ] `civitas-api`: HTTP endpoints for all v1 operations, with rate limiting and CSRF
-- [ ] SvelteKit frontend covering all v1 routes
-- [ ] Docker development setup
-- [ ] CI pipeline (tests, lint, audit, accessibility, Lighthouse)
-- [ ] Seed data script
-- [ ] Playwright E2E coverage of critical flows
-- [ ] Markdown transcription of the manifesto
+- [x] Repository scaffolding, license, governance, contributing
+- [x] PostgreSQL schema (users, topics, proposals, votes, delegations, comments, audit_log)
+- [x] `civitas-core`: tally + cycle detection with thorough tests
+- [x] `civitas-db`: SQLx queries for all v1 operations
+- [x] `civitas-auth`: registration, login, email verification, sessions (SMTP delivery with a log fallback for development)
+- [x] `civitas-api`: HTTP endpoints for all v1 operations, with rate limiting and CSRF (origin verification)
+- [x] SvelteKit frontend covering all v1 routes
+- [x] Docker development setup
+- [x] CI pipeline (tests, lint, audit) — accessibility and Lighthouse checks land with the v0.2 audit items below
+- [x] Seed data script
+- [x] Playwright E2E coverage of critical flows (register, vote, delegate)
+- [x] Markdown transcription of the manifesto
 
 Exit criteria: a small group can register, deliberate, vote, and delegate end-to-end on a self-hosted instance.
 
@@ -26,7 +26,7 @@ Exit criteria: a small group can register, deliberate, vote, and delegate end-to
 - Real-time tally updates on the proposal page (server-sent events; small surface)
 - Email-templating polish; magic-link login as alternative to passwords
 - Operator dashboard (read-only): registered users, active proposals, recent audit events
-- Improved accessibility audit, broader screen reader testing
+- Accessibility: automated checks in CI, improved manual audit, broader screen reader testing
 - Performance budget enforcement in CI (Lighthouse + backend P99)
 - Spanish and one Slavic translation as proof of i18n pipeline
 
