@@ -16,6 +16,9 @@ export default defineConfig({
       '/api': {
         target: API_TARGET,
         changeOrigin: false,
+        // Forward the browser's address so per-IP rate limiting on the API
+        // sees clients, not the proxy (API honors it only with TRUST_PROXY).
+        xfwd: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       }
     }

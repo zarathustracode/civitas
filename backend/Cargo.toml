@@ -31,6 +31,7 @@ axum-extra  = { version = "0.9", features = ["cookie"] }
 async-trait = "0.1"
 tower       = "0.5"
 tower-http  = { version = "0.6", features = ["trace", "cors", "set-header", "request-id", "limit"] }
+tower_governor = "0.4"
 hyper       = "1"
 
 # Serde / serialization

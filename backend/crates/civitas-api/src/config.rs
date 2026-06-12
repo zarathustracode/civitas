@@ -18,6 +18,22 @@ pub struct Config {
     /// it short-circuits the email-verification ceremony.
     pub dev_return_verification_token: bool,
     pub mail: MailConfig,
+    pub rate_limit: RateLimitConfig,
+}
+
+/// Per-IP token-bucket settings. `auth_*` governs the `/auth` routes
+/// (credential guessing, email spam); `global_*` governs everything else.
+/// A bucket holds `burst` tokens and regains one every `replenish_ms`.
+#[derive(Debug, Clone)]
+pub struct RateLimitConfig {
+    /// Trust `X-Forwarded-For` for the client IP. Enable only when the API
+    /// is unreachable except through a trusted proxy (reverse proxy or the
+    /// `SvelteKit` server), otherwise the header is attacker-controlled.
+    pub trust_proxy: bool,
+    pub auth_burst: u32,
+    pub auth_replenish_ms: u64,
+    pub global_burst: u32,
+    pub global_replenish_ms: u64,
 }
 
 /// Outbound-mail driver. `Smtp` when `SMTP_HOST` is set; otherwise `Log`,
@@ -87,6 +103,7 @@ impl Config {
         };
         let dev_return_verification_token = optional_bool("DEV_RETURN_VERIFICATION_TOKEN", false)?;
         let mail = mail_from_env()?;
+        let rate_limit = rate_limit_from_env()?;
 
         Ok(Self {
             database_url,
@@ -96,8 +113,33 @@ impl Config {
             cookie,
             dev_return_verification_token,
             mail,
+            rate_limit,
         })
     }
+}
+
+fn rate_limit_from_env() -> Result<RateLimitConfig, ConfigError> {
+    let config = RateLimitConfig {
+        trust_proxy: optional_bool("TRUST_PROXY", false)?,
+        auth_burst: optional_u32("RATE_LIMIT_AUTH_BURST", 20)?,
+        auth_replenish_ms: optional_u64("RATE_LIMIT_AUTH_REPLENISH_MS", 1_000)?,
+        global_burst: optional_u32("RATE_LIMIT_GLOBAL_BURST", 200)?,
+        global_replenish_ms: optional_u64("RATE_LIMIT_GLOBAL_REPLENISH_MS", 20)?,
+    };
+    for (var, value) in [
+        ("RATE_LIMIT_AUTH_BURST", u64::from(config.auth_burst)),
+        ("RATE_LIMIT_AUTH_REPLENISH_MS", config.auth_replenish_ms),
+        ("RATE_LIMIT_GLOBAL_BURST", u64::from(config.global_burst)),
+        ("RATE_LIMIT_GLOBAL_REPLENISH_MS", config.global_replenish_ms),
+    ] {
+        if value == 0 {
+            return Err(ConfigError::Invalid {
+                var,
+                msg: "must be at least 1".to_string(),
+            });
+        }
+    }
+    Ok(config)
 }
 
 fn mail_from_env() -> Result<MailConfig, ConfigError> {
@@ -160,6 +202,18 @@ fn optional_u16(var: &'static str, default: u16) -> Result<u16, ConfigError> {
 }
 
 fn optional_u32(var: &'static str, default: u32) -> Result<u32, ConfigError> {
+    match optional(var) {
+        Some(s) => s
+            .parse()
+            .map_err(|e: std::num::ParseIntError| ConfigError::Invalid {
+                var,
+                msg: e.to_string(),
+            }),
+        None => Ok(default),
+    }
+}
+
+fn optional_u64(var: &'static str, default: u64) -> Result<u64, ConfigError> {
     match optional(var) {
         Some(s) => s
             .parse()

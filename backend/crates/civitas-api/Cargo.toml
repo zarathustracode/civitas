@@ -28,6 +28,7 @@ async-trait = { workspace = true }
 time        = "0.3"
 tower      = { workspace = true }
 tower-http = { workspace = true }
+tower_governor = { workspace = true }
 hyper      = { workspace = true }
 sqlx       = { workspace = true }
 serde      = { workspace = true }

@@ -6,7 +6,7 @@
  * backend does not return a 500 on every page load.
  */
 
-import type { Handle } from '@sveltejs/kit';
+import type { Handle, HandleFetch } from '@sveltejs/kit';
 import { getCurrentUser } from '$lib/api/auth';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -17,4 +17,18 @@ export const handle: Handle = async ({ event, resolve }) => {
     event.locals.currentUser = null;
   }
   return resolve(event);
+};
+
+/**
+ * Server-side API calls otherwise reach the backend from this server's IP,
+ * which would put every user in one rate-limit bucket. Forward the real
+ * client address; the API only trusts it when TRUST_PROXY is set there.
+ */
+export const handleFetch: HandleFetch = async ({ event, request, fetch }) => {
+  try {
+    request.headers.set('x-forwarded-for', event.getClientAddress());
+  } catch {
+    // No client address available (e.g. prerendering) — send as-is.
+  }
+  return fetch(request);
 };
