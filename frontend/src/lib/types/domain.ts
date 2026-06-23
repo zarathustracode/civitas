@@ -66,6 +66,21 @@ export interface Proposal {
   updated_at: IsoTimestamp;
 }
 
+/**
+ * A proposal enriched with its live tally summary and visible comment count,
+ * as returned by `GET /proposals/summaries`. The proposal fields are
+ * flattened in alongside the aggregates (mirrors `ProposalListItem` in the
+ * API `dto.rs`). Decimal weights arrive as strings; parse for arithmetic.
+ */
+export interface ProposalListItem extends Proposal {
+  yes: DecimalString;
+  no: DecimalString;
+  abstain: DecimalString;
+  eligible_voters: number;
+  counted_voters: number;
+  comment_count: number;
+}
+
 export interface Vote {
   id: UUID;
   proposal_id: UUID;

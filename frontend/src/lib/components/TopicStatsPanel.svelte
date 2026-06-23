@@ -13,37 +13,43 @@
 
 <section
   aria-labelledby="topic-stats-heading"
-  class="grid gap-4 rounded-lg border border-ink-200 bg-white p-4 sm:grid-cols-3"
+  class="grid gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-3"
 >
   <h2 id="topic-stats-heading" class="sr-only">Topic activity</h2>
 
-  <div>
-    <p class="text-xs uppercase tracking-wide text-ink-600">Proposals</p>
-    <p class="text-2xl font-semibold tabular-nums">{totalProposals}</p>
+  <div class="bg-card px-6 py-5">
+    <div class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">Proposals</div>
+    <div class="mt-1.5 font-mono text-[28px] font-medium tabular-nums">{totalProposals}</div>
     {#if totalProposals > 0}
-      <p class="mt-1 text-xs text-ink-600">
+      <p class="mt-1.5 font-mono text-[11px] leading-[1.5] text-ink-400">
         {stats.proposal_counts.voting} voting · {stats.proposal_counts.deliberation} in deliberation
         · {stats.proposal_counts.closed} closed
       </p>
     {/if}
   </div>
 
-  <div>
-    <p class="text-xs uppercase tracking-wide text-ink-600">Active delegations</p>
-    <p class="text-2xl font-semibold tabular-nums">{stats.active_delegations}</p>
-    <p class="mt-1 text-xs text-ink-600">votes routed via delegation on this topic</p>
+  <div class="bg-card px-6 py-5">
+    <div class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
+      Active delegations
+    </div>
+    <div class="mt-1.5 font-mono text-[28px] font-medium tabular-nums">
+      {stats.active_delegations}
+    </div>
+    <p class="mt-1.5 font-mono text-[11px] leading-[1.5] text-ink-400">
+      votes routed via delegation on this topic
+    </p>
   </div>
 
-  <div>
-    <p class="text-xs uppercase tracking-wide text-ink-600">Top delegates</p>
+  <div class="bg-card px-6 py-5">
+    <div class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">Top delegates</div>
     {#if stats.top_delegates.length === 0}
-      <p class="mt-1 text-sm text-ink-600">Nobody is delegating on this topic yet.</p>
+      <p class="mt-1.5 font-serif text-[14px] text-ink-600">Nobody is delegating here yet.</p>
     {:else}
-      <ol class="mt-1 space-y-0.5 text-sm">
+      <ol class="mt-2 space-y-1">
         {#each stats.top_delegates as d (d.id)}
           <li class="flex items-baseline justify-between gap-2">
-            <span>{d.display_name}</span>
-            <span class="text-xs tabular-nums text-ink-600">{d.incoming}</span>
+            <span class="font-serif text-[15px]">{d.display_name}</span>
+            <span class="font-mono text-[12px] tabular-nums text-ink-400">{d.incoming}</span>
           </li>
         {/each}
       </ol>

@@ -29,11 +29,11 @@
     neutral: 'Neutral',
     question: 'Question'
   };
-  const stanceClass: Record<Stance, string> = {
-    support: 'bg-affirm-600/10 text-affirm-600',
-    oppose: 'bg-oppose-600/10 text-oppose-600',
-    neutral: 'bg-ink-100 text-ink-800',
-    question: 'bg-accent-50 text-accent-700'
+  const stanceMeta: Record<Stance, { text: string; bg: string }> = {
+    support: { text: 'text-affirm-600', bg: 'bg-affirm-600' },
+    oppose: { text: 'text-oppose-600', bg: 'bg-oppose-600' },
+    neutral: { text: 'text-ink-600', bg: 'bg-ink-400' },
+    question: { text: 'text-accent-600', bg: 'bg-accent-600' }
   };
 
   function fmtDate(s: string): string {
@@ -56,24 +56,32 @@
 {#snippet commentNode(node: Node, depth: number)}
   <li>
     <article
-      class="rounded-md border border-ink-200 bg-white p-3"
+      class="rounded border border-line bg-card p-4"
       style="margin-left: {Math.min(depth, 4) * 1.25}rem"
     >
-      <header class="mb-1 flex flex-wrap items-baseline gap-2 text-sm">
+      <header class="mb-2 flex flex-wrap items-center gap-2.5">
         <span
-          class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {stanceClass[
+          class="flex h-[26px] w-[26px] flex-none items-center justify-center rounded-full font-serif text-[11px] font-semibold text-white {stanceMeta[
             node.stance
-          ]}"
+          ].bg}"
         >
-          {stanceLabel[node.stance]}
+          {node.author_id.slice(0, 2).toUpperCase()}
         </span>
-        <span class="font-mono text-xs text-ink-600">{node.author_id.slice(0, 8)}</span>
-        <span class="text-xs text-ink-600">{fmtDate(node.created_at)}</span>
+        <span class="font-mono text-[12px] text-ink-600">{node.author_id.slice(0, 8)}</span>
+        <span
+          class="inline-flex rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] {stanceMeta[
+            node.stance
+          ].text}"
+          style="background:rgba(0,0,0,0.04);">{stanceLabel[node.stance]}</span
+        >
+        <span class="ml-auto font-mono text-[11px] text-ink-400">{fmtDate(node.created_at)}</span>
         {#if node.edited_at}
-          <span class="text-xs italic text-ink-600">(edited)</span>
+          <span class="font-mono text-[11px] italic text-ink-400">(edited)</span>
         {/if}
       </header>
-      <p class="whitespace-pre-line text-sm text-ink-900">{visibleBody(node)}</p>
+      <p class="whitespace-pre-line font-serif text-[16px] leading-[1.55] text-ink-900">
+        {visibleBody(node)}
+      </p>
     </article>
     {#if node.children.length > 0}
       <ul class="mt-3 space-y-3">

@@ -1,4 +1,10 @@
-import type { AuditEntry, Proposal, ProposalStatus, UUID } from '$lib/types/domain';
+import type {
+  AuditEntry,
+  Proposal,
+  ProposalListItem,
+  ProposalStatus,
+  UUID
+} from '$lib/types/domain';
 import { apiFetch, type QueryParams } from './client';
 
 export interface ListProposalsParams {
@@ -13,6 +19,25 @@ export async function listProposals(
 ): Promise<Proposal[]> {
   const query: QueryParams = { topic_id: params.topic_id, status: params.status };
   return apiFetch<Proposal[]>('/proposals', {
+    query,
+    fetch: customFetch,
+    forwardHeaders
+  });
+}
+
+/**
+ * Enriched docket listing: proposals plus their live tally summary and
+ * visible comment count, in one request (`GET /proposals/summaries`). With no
+ * filter it returns every status, so the list view can group/filter client
+ * side. Avoids fanning out a tally + comments request per row.
+ */
+export async function listProposalSummaries(
+  params: ListProposalsParams = {},
+  customFetch?: typeof fetch,
+  forwardHeaders?: Headers
+): Promise<ProposalListItem[]> {
+  const query: QueryParams = { topic_id: params.topic_id, status: params.status };
+  return apiFetch<ProposalListItem[]>('/proposals/summaries', {
     query,
     fetch: customFetch,
     forwardHeaders

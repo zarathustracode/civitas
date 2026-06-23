@@ -20,8 +20,6 @@
       const prefix = m.by === 'system' ? 'auto: ' : '';
       return `${prefix}${m.from ?? '?'} → ${m.to ?? '?'}`;
     }
-    // For events with no specific metadata to render, leave the description
-    // cell empty — the action label cell is enough.
     return '';
   }
 
@@ -33,19 +31,21 @@
   }
 </script>
 
-<details class="rounded-lg border border-ink-200 bg-white">
-  <summary class="cursor-pointer select-none p-3 text-sm font-semibold">
-    Audit timeline ({entries.length})
+<details class="overflow-hidden rounded border border-line bg-card">
+  <summary
+    class="cursor-pointer select-none px-4 py-3 font-mono text-[11px] uppercase tracking-[0.12em] text-ink-600"
+  >
+    Audit timeline · {entries.length}
   </summary>
   {#if entries.length === 0}
-    <p class="px-3 pb-3 text-sm text-ink-600">No recorded events on this proposal yet.</p>
+    <p class="px-4 pb-4 text-[13px] text-ink-600">No recorded events on this proposal yet.</p>
   {:else}
-    <ol class="divide-y divide-ink-100 px-3 pb-3 text-sm">
+    <ol class="divide-y divide-line px-4 pb-3 text-[13px]">
       {#each entries as e (e.id)}
-        <li class="grid gap-1 py-2 sm:grid-cols-[10rem_1fr_auto] sm:items-baseline sm:gap-3">
+        <li class="grid gap-1 py-2.5 sm:grid-cols-[12rem_1fr_auto] sm:items-baseline sm:gap-3">
           <span class="font-medium">{actionLabel[e.action] ?? e.action}</span>
-          <span class="text-ink-700">{describe(e)}</span>
-          <span class="text-xs text-ink-600">
+          <span class="text-ink-600">{describe(e)}</span>
+          <span class="font-mono text-[11px] text-ink-400">
             <span>by {actorLabel(e)}</span> · <span class="tabular-nums">{fmt(e.created_at)}</span>
           </span>
         </li>

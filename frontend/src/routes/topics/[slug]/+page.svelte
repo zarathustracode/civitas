@@ -9,31 +9,39 @@
   <title>{data.topic.name} — Civitas</title>
 </svelte:head>
 
-<section class="space-y-6">
-  <header class="prose-civic">
-    <p class="text-sm text-ink-600">
-      <a href="/topics" class="hover:underline">Topics</a> ›
+<section class="mx-auto max-w-civic px-5 pb-20 pt-14 sm:px-10">
+  <p class="mb-6 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-400">
+    <a href="/topics" class="hover:text-ink-600 hover:underline">Topics</a> ›
+  </p>
+  <h1
+    class="font-serif text-[clamp(40px,5.4vw,60px)] font-semibold leading-[1.04] tracking-[-0.015em]"
+  >
+    {data.topic.name}
+  </h1>
+  {#if data.topic.description}
+    <p class="mt-[18px] max-w-[60ch] font-serif text-[20px] leading-[1.5] text-ink-600">
+      {data.topic.description}
     </p>
-    <h1>{data.topic.name}</h1>
-    {#if data.topic.description}
-      <p>{data.topic.description}</p>
-    {/if}
-  </header>
+  {/if}
 
-  <TopicStatsPanel stats={data.stats} />
+  <div class="mt-9">
+    <TopicStatsPanel stats={data.stats} />
+  </div>
 
-  <div class="space-y-3">
-    <h2 class="text-lg font-semibold">Proposals</h2>
+  <div class="mt-12">
+    <h2 class="mb-5 font-serif text-[24px] font-semibold tracking-[-0.01em]">Proposals</h2>
     {#if data.proposals.length === 0}
-      <p class="rounded-md bg-ink-100 px-4 py-3 text-sm text-ink-800">
+      <p
+        class="rounded border border-dashed border-line px-6 py-6 font-serif text-[18px] text-ink-600"
+      >
         No proposals on this topic yet.
       </p>
     {:else}
-      <ul class="space-y-3">
+      <div class="grid gap-3">
         {#each data.proposals as proposal (proposal.id)}
-          <li><ProposalCard {proposal} /></li>
+          <ProposalCard {proposal} />
         {/each}
-      </ul>
+      </div>
     {/if}
   </div>
 </section>
