@@ -17,7 +17,7 @@ dev: ## Run backend + frontend together (requires `concurrently` or two terminal
 	@echo "Run 'make backend-dev' and 'make frontend-dev' in separate terminals."
 
 backend-dev: ## Run the API server with hot-reload (requires cargo-watch).
-	cd backend && cargo watch -x 'run -p civitas-api'
+	cd backend && cargo watch -x 'run -p civitas-api --bin civitas-api'
 
 frontend-dev: ## Run the SvelteKit dev server.
 	cd frontend && pnpm dev

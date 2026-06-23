@@ -56,7 +56,15 @@ If you prefer a local Postgres install, ensure `DATABASE_URL` in `.env` points a
 make backend-dev
 ```
 
-This runs `cargo watch -x 'run -p civitas-api'`. The API listens on whatever you set in `HTTP_LISTEN_ADDR` (default `127.0.0.1:8080`).
+This runs `cargo watch -x 'run -p civitas-api --bin civitas-api'`. The `--bin` is
+required — the crate also ships a `seed` binary, so a bare `run -p civitas-api`
+is ambiguous. The API listens on `HTTP_LISTEN_ADDR` (default `127.0.0.1:8080`).
+
+> The backend reads configuration **straight from the process environment** —
+> there is no dotenv loader, so a `.env` file on disk is not picked up
+> automatically. `DATABASE_URL` and `PUBLIC_BASE_URL` are required. Export your
+> `.env` first (`set -a; . ./.env; set +a`) or pass the vars inline. For cookie
+> login over plain HTTP, set `COOKIE_SECURE=false` (it defaults to `true`).
 
 ## Run the frontend
 
@@ -66,7 +74,13 @@ In a second terminal:
 make frontend-dev
 ```
 
-SvelteKit dev server runs on `http://localhost:5173`. It proxies API calls to the backend per `PUBLIC_API_BASE_URL` in `.env`.
+SvelteKit's dev server runs on **`http://127.0.0.1:5173`** — use `127.0.0.1`,
+not `localhost` (Vite binds IPv4, and `localhost` may resolve to IPv6 first,
+giving `ERR_CONNECTION_RESET`). Browser API calls hit the relative `/api`, which
+Vite proxies to the backend (`API_PROXY_TARGET`, default `http://127.0.0.1:8080`).
+Server-side rendering has no proxy and calls the API directly; in production set
+`INTERNAL_API_BASE_URL` so SSR does not loop back through the SvelteKit server
+(see [`frontend.md`](./frontend.md)).
 
 ## Seed data
 
@@ -121,6 +135,14 @@ CI rejects PRs that fail formatting or lints.
 **`pnpm` complains about lockfile.** Make sure you ran `make setup` (which uses `pnpm install`); do not use `npm` against this repo.
 
 **Port 5432 in use.** You have another Postgres running. Either stop it or change the port in `docker-compose.yml` and `.env`.
+
+**`http://localhost:5173` shows `ERR_CONNECTION_RESET`.** Vite binds IPv4 — open `http://127.0.0.1:5173` instead.
+
+**Frontend dev server dies with `JavaScript heap out of memory` (exit 134).** An SSR API call is recursing back into the SvelteKit server. Use a build whose `src/lib/api/client.ts` falls back to an absolute SSR base in dev, or set `INTERNAL_API_BASE_URL=http://127.0.0.1:8080`.
+
+**API exits with `could not determine which binary to run`.** The crate ships `civitas-api` and `seed`; run `--bin civitas-api`.
+
+**API exits with `missing required environment variable: DATABASE_URL`.** The backend has no dotenv loader — export or pass the env vars (see [Run the backend](#run-the-backend)).
 
 ## What to read next
 
