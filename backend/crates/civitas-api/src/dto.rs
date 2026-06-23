@@ -125,6 +125,23 @@ impl From<civitas_db::proposals::Proposal> for ProposalResponse {
     }
 }
 
+/// A proposal plus the aggregate figures the docket needs — a live tally
+/// summary and the visible comment count — so the list view renders real
+/// bars and counts in a single request instead of fanning out per-proposal
+/// tally/comment calls. The proposal fields are flattened in, so the wire
+/// shape is a `ProposalResponse` with the extra fields alongside it.
+#[derive(Debug, Clone, Serialize)]
+pub struct ProposalListItem {
+    #[serde(flatten)]
+    pub proposal: ProposalResponse,
+    pub yes: Weight,
+    pub no: Weight,
+    pub abstain: Weight,
+    pub eligible_voters: usize,
+    pub counted_voters: usize,
+    pub comment_count: i64,
+}
+
 #[derive(Debug, Clone, Deserialize)]
 pub struct CreateProposalRequest {
     pub topic_id: TopicId,

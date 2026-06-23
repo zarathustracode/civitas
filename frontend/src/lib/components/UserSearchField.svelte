@@ -64,11 +64,14 @@
   }
 
   const inputClass =
-    'w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-ink-900 placeholder:text-ink-400 focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500';
+    'w-full rounded-[3px] border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink-900 placeholder:text-ink-400 focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500';
 </script>
 
 <div class="flex flex-col gap-1">
-  <label class="text-sm font-medium" for="user-search-{name}">{label}</label>
+  <label
+    class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400"
+    for="user-search-{name}">{label}</label
+  >
   <div class="relative">
     <input
       id="user-search-{name}"
@@ -92,13 +95,13 @@
   </div>
 
   {#if hint}
-    <p class="text-xs text-ink-600">{hint}</p>
+    <p class="text-[12px] leading-[1.45] text-ink-400">{hint}</p>
   {/if}
 
   {#if !chosen && results.length > 0}
     <ul
       role="listbox"
-      class="max-h-56 overflow-auto rounded-md border border-ink-200 bg-white shadow-sm"
+      class="max-h-56 overflow-auto rounded-[3px] border border-line bg-white shadow-sm"
     >
       {#each results as r (r.id)}
         <li>

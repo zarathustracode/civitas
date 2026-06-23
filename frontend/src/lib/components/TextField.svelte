@@ -34,11 +34,11 @@
   const id = $derived(`f_${name}`);
   const describedBy = $derived(error ? `${id}_err` : hint ? `${id}_hint` : undefined);
   const inputClass =
-    'w-full rounded-md border border-ink-200 bg-white px-3 py-2 text-ink-900 placeholder:text-ink-400 focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500 disabled:bg-ink-50 disabled:text-ink-400';
+    'w-full rounded-[3px] border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink-900 placeholder:text-ink-400 focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500 disabled:bg-ink-50 disabled:text-ink-400';
 </script>
 
-<div class="flex flex-col gap-1">
-  <label for={id} class="text-sm font-medium text-ink-800">
+<div class="flex flex-col gap-1.5">
+  <label for={id} class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
     {label}
     {#if required}<span class="text-oppose-600" aria-hidden="true">*</span>{/if}
   </label>
@@ -75,9 +75,9 @@
   {/if}
 
   {#if hint && !error}
-    <p id="{id}_hint" class="text-xs text-ink-600">{hint}</p>
+    <p id="{id}_hint" class="text-[12px] leading-[1.45] text-ink-400">{hint}</p>
   {/if}
   {#if error}
-    <p id="{id}_err" class="text-sm text-oppose-600">{error}</p>
+    <p id="{id}_err" class="text-[12px] text-oppose-600">{error}</p>
   {/if}
 </div>

@@ -1,16 +1,17 @@
 import type { PageServerLoad } from './$types';
-import { listProposals } from '$lib/api/proposals';
-import type { ProposalStatus } from '$lib/types/domain';
+import { listProposalSummaries } from '$lib/api/proposals';
+import { listTopics } from '$lib/api/topics';
 
-const VALID_STATUSES: ProposalStatus[] = ['draft', 'deliberation', 'voting', 'closed'];
-
-export const load: PageServerLoad = async ({ fetch, request, url }) => {
-  const statusParam = url.searchParams.get('status');
-  const status =
-    statusParam && VALID_STATUSES.includes(statusParam as ProposalStatus)
-      ? (statusParam as ProposalStatus)
-      : undefined;
-
-  const proposals = await listProposals({ status }, fetch, request.headers);
-  return { proposals, activeStatus: status ?? 'voting' };
+/**
+ * The docket loads every proposal enriched with its tally summary and comment
+ * count in a single call, plus topics for name resolution. Filtering happens
+ * client-side over the full set so the status chips can show live counts.
+ */
+export const load: PageServerLoad = async ({ fetch, request }) => {
+  const headers = request.headers;
+  const [items, topics] = await Promise.all([
+    listProposalSummaries({}, fetch, headers),
+    listTopics(fetch, headers)
+  ]);
+  return { items, topics };
 };

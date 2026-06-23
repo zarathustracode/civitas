@@ -3,24 +3,62 @@
 @tailwind utilities;
 
 @layer base {
-  :focus-visible {
-    @apply outline-2 outline-offset-2 outline-accent-500;
+  /* Palette mirrored as custom properties, for the few places (animated
+     glows, gradient strokes) where a raw var() reads cleaner than a class. */
+  :root {
+    --paper: #f4f1ea;
+    --card: #fbfaf6;
+    --ink: #1b1a14;
+    --ink2: #56544a;
+    --ink3: #908d80;
+    --line: rgba(27, 26, 20, 0.13);
+    --affirm: #3a6b4e;
+    --oppose: #b0492f;
+    --neutral: #8a8678;
+    --accent: #2b3a8c;
+    --ochre: #9a7b2e;
+    --band: #1b1a14;
+    --glow: #7d97ff;
   }
 
-  /* Honest minimum line-height for body text. */
+  html,
   body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family:
+      'Public Sans',
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
     line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: #c9d2f7;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent-500;
   }
 }
 
 @layer components {
   .prose-civic {
-    @apply max-w-prose space-y-4 text-ink-800;
+    @apply max-w-prose space-y-4 text-ink-600;
   }
   .prose-civic h1,
   .prose-civic h2,
   .prose-civic h3 {
-    @apply text-ink-900;
+    @apply font-serif text-ink-900;
   }
   .prose-civic h1 {
     @apply text-3xl font-semibold;
@@ -33,5 +71,85 @@
   }
   .prose-civic a {
     @apply text-accent-600 underline underline-offset-2 hover:text-accent-700;
+  }
+}
+
+/* Decorative keyframes used by the home + proposal-detail "mechanism" bands and
+   list entrances. Applied via inline `style="animation: …"` in the markup so the
+   exact per-node delays from the design carry over verbatim. */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes drawLine {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes flow {
+  0% {
+    left: -14%;
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    left: 110%;
+    opacity: 0;
+  }
+}
+@keyframes ringPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 22px 2px rgba(125, 151, 255, 0.22);
+  }
+  50% {
+    box-shadow: 0 0 30px 6px rgba(125, 151, 255, 0.45);
+  }
+}
+@keyframes blink {
+  0%,
+  55% {
+    opacity: 1;
+  }
+  56%,
+  100% {
+    opacity: 0.25;
+  }
+}
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Respect users who ask for less motion: neutralize the decorative animations
+   above (countdowns, flowing delegation pulses, entrance fades) without
+   touching each inline declaration. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

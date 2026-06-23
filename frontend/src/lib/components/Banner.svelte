@@ -10,10 +10,10 @@
   }: { tone?: Tone; title?: string; children: Snippet } = $props();
 
   const toneClass: Record<Tone, string> = {
-    info: 'bg-accent-50 border-accent-500 text-ink-900',
-    success: 'bg-green-50 border-affirm-600 text-ink-900',
-    warning: 'bg-yellow-50 border-yellow-500 text-ink-900',
-    error: 'bg-red-50 border-oppose-600 text-ink-900'
+    info: 'border-accent-600 bg-accent-50 text-ink-900',
+    success: 'border-affirm-600 bg-affirm-50 text-ink-900',
+    warning: 'border-ochre-600 bg-ochre-50 text-ink-900',
+    error: 'border-oppose-600 bg-oppose-50 text-ink-900'
   };
   const role = $derived(tone === 'error' || tone === 'warning' ? 'alert' : 'status');
 </script>
@@ -21,10 +21,10 @@
 <div
   {role}
   aria-live={role === 'alert' ? 'assertive' : 'polite'}
-  class="rounded-md border-l-4 px-4 py-3 {toneClass[tone]}"
+  class="rounded-[3px] border-l-[3px] px-4 py-3 {toneClass[tone]}"
 >
   {#if title}
     <p class="font-semibold">{title}</p>
   {/if}
-  <div class="text-sm">{@render children()}</div>
+  <div class="text-sm leading-[1.5]">{@render children()}</div>
 </div>

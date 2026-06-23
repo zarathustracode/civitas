@@ -47,7 +47,20 @@ function apiBase(): string {
     return CLIENT_BASE_PATH;
   }
   const internal = typeof process !== 'undefined' ? process.env?.INTERNAL_API_BASE_URL : undefined;
-  return (internal && internal.replace(/\/+$/, '')) || CLIENT_BASE_PATH;
+  if (internal) return internal.replace(/\/+$/, '');
+  // Dev SSR has no proxy in front of `event.fetch`: SvelteKit resolves a
+  // relative same-origin URL in-process, so a relative `/api` base re-enters
+  // this server's request lifecycle (hooks.server.ts fetches `/api/auth/me`,
+  // which runs `handle` again, which fetches again…) and recurses until the
+  // Node heap is exhausted (OOM). Point SSR at the API host directly. Mirrors
+  // API_PROXY_TARGET's default in vite.config.ts; override with
+  // INTERNAL_API_BASE_URL (required in production, where there is no Vite).
+  if (import.meta.env.DEV) {
+    const devTarget =
+      (typeof process !== 'undefined' && process.env?.API_PROXY_TARGET) || 'http://127.0.0.1:8080';
+    return devTarget.replace(/\/+$/, '');
+  }
+  return CLIENT_BASE_PATH;
 }
 
 export async function apiFetch<T = unknown>(path: string, opts: ApiFetchOptions = {}): Promise<T> {
