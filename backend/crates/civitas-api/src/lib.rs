@@ -6,6 +6,7 @@
 #![doc(html_root_url = "https://docs.rs/civitas-api/0.1.0")]
 
 pub mod auth_extractor;
+pub mod client_info;
 pub mod config;
 pub mod cookies;
 pub mod dto;

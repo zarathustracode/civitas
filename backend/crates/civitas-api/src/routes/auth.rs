@@ -16,6 +16,7 @@ use civitas_auth::verification::VerificationProvider;
 use civitas_auth::{login, password_reset, register, session};
 
 use crate::auth_extractor::AuthSession;
+use crate::client_info::ClientInfo;
 use crate::cookies::{clear_session_cookie, session_cookie};
 use crate::dto::{
     LoginRequest, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
@@ -98,14 +99,15 @@ async fn register_handler(
 async fn login_handler(
     State(state): State<AppState>,
     jar: CookieJar,
+    client: ClientInfo,
     Json(body): Json<LoginRequest>,
 ) -> ApiResult<(CookieJar, Json<UserResponse>)> {
     let issued = login::authenticate(
         state.pool(),
         &body.email,
         &body.password,
-        None, // user_agent: TODO surface from request headers
-        None, // ip_address: TODO surface from connect-info
+        client.user_agent.as_deref(),
+        client.ip_address.as_deref(),
         DEFAULT_LIFETIME,
     )
     .await
