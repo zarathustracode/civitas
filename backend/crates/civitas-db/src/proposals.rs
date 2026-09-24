@@ -12,6 +12,7 @@ use sqlx::{PgExecutor, Postgres, Transaction};
 use civitas_types::{ProposalId, ProposalStatus, TopicId, UserId};
 
 use crate::audit::{write_log, Action};
+use crate::tally_events::{self, TallyScope};
 use crate::{DbError, DbResult};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::FromRow)]
@@ -214,6 +215,7 @@ pub async fn auto_close_expired(tx: &mut Transaction<'_, Postgres>) -> DbResult<
             Some(&metadata),
         )
         .await?;
+        tally_events::notify(&mut **tx, TallyScope::Proposal(*id)).await?;
     }
     Ok(ids)
 }
@@ -284,6 +286,7 @@ pub async fn transition_status(
         Some(&metadata),
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::Proposal(id)).await?;
 
     Ok(())
 }

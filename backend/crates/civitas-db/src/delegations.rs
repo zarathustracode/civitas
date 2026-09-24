@@ -15,6 +15,7 @@ use civitas_core::{
 use civitas_types::{DelegationId, TopicId, UserId};
 
 use crate::audit::{write_log, Action};
+use crate::tally_events::{self, TallyScope};
 use crate::{DbError, DbResult};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -95,6 +96,7 @@ pub async fn create_with_cycle_check(
         Some(&metadata),
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::Topic(topic_id)).await?;
 
     Ok(row)
 }
@@ -106,20 +108,18 @@ pub async fn revoke(
     actor_id: UserId,
     delegation_id: DelegationId,
 ) -> DbResult<()> {
-    let updated = sqlx::query!(
+    let topic_id = sqlx::query_scalar!(
         r#"
         update delegations
         set revoked_at = now()
         where id = $1 and revoked_at is null
+        returning topic_id as "topic_id: TopicId"
         "#,
         delegation_id.into_inner(),
     )
-    .execute(&mut **tx)
-    .await?;
-
-    if updated.rows_affected() == 0 {
-        return Err(DbError::NotFound);
-    }
+    .fetch_optional(&mut **tx)
+    .await?
+    .ok_or(DbError::NotFound)?;
 
     write_log(
         &mut **tx,
@@ -130,6 +130,7 @@ pub async fn revoke(
         None,
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::Topic(topic_id)).await?;
 
     Ok(())
 }

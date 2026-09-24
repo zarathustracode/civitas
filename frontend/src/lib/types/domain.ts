@@ -157,6 +157,18 @@ export type UserResponse = User;
 export type TopicResponse = Topic;
 export type ProposalResponse = Proposal;
 export type VoteResponse = Vote;
+/** One `tally` event from `GET /proposals/:id/tally/stream`: the public
+ * aggregate without the per-viewer trail. */
+export interface TallyUpdate {
+  proposal_id: UUID;
+  status: ProposalStatus;
+  yes: DecimalString;
+  no: DecimalString;
+  abstain: DecimalString;
+  eligible_voters: number;
+  counted_voters: number;
+}
+
 export type TallyResponse = Tally;
 export type DelegationResponse = Delegation;
 export type CommentResponse = Comment;

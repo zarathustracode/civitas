@@ -33,6 +33,7 @@ pub fn router() -> Router<AppState> {
         .route("/:id/votes", post(super::votes::cast))
         .route("/:id/votes/mine", get(super::votes::list_mine))
         .route("/:id/tally", get(super::votes::tally_handler))
+        .route("/:id/tally/stream", get(super::votes::tally_stream))
         .route("/:id/audit", get(audit_handler))
         .route(
             "/:id/comments",

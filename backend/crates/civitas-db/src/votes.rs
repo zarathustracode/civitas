@@ -13,6 +13,7 @@ use civitas_core::VoteRecord;
 use civitas_types::{ProposalId, ProposalStatus, UserId, VoteChoice, VoteId};
 
 use crate::audit::{write_log, Action};
+use crate::tally_events::{self, TallyScope};
 use crate::{DbError, DbResult};
 
 /// Storage shape for a single vote-cast event. Includes audit fields not
@@ -93,6 +94,7 @@ pub async fn record(
         Some(&metadata),
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::Proposal(proposal_id)).await?;
 
     Ok(vote)
 }

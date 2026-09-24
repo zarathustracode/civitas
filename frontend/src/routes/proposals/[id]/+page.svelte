@@ -2,8 +2,10 @@
   import { onMount } from 'svelte';
   import { invalidateAll } from '$app/navigation';
   import type { PageData, ActionData } from './$types';
-  import type { VoteChoice, ProposalStatus, Stance } from '$lib/types/domain';
+  import type { VoteChoice, ProposalStatus, Stance, Tally, TallyUpdate } from '$lib/types/domain';
   import { initials } from '$lib/utils/text';
+  import { applyTallyUpdate } from '$lib/utils/tally';
+  import { tallyStreamUrl } from '$lib/api/votes';
   import Markdown from '$lib/components/Markdown.svelte';
   import TallyDisplay from '$lib/components/TallyDisplay.svelte';
   import VoteInterface from '$lib/components/VoteInterface.svelte';
@@ -73,7 +75,31 @@
     return `${Math.floor(hrs / 24)}d ago`;
   }
 
-  const trail = $derived(data.tally.your_trail);
+  // Live tally: the loaded snapshot, overlaid with server-sent updates while
+  // voting is open. An update is keyed to the snapshot it arrived on, so a
+  // reload (e.g. after the viewer votes) falls back to the fresh snapshot.
+  let streamed = $state.raw<{ base: Tally; update: TallyUpdate } | null>(null);
+  const tally = $derived(
+    streamed && streamed.base === data.tally
+      ? applyTallyUpdate(data.tally, streamed.update)
+      : data.tally
+  );
+
+  const proposalId = $derived(data.proposal.id);
+  const isVoting = $derived(data.proposal.status === 'voting');
+  $effect(() => {
+    if (!isVoting) return;
+    const source = new EventSource(tallyStreamUrl(proposalId));
+    source.addEventListener('tally', (event) => {
+      const update = JSON.parse((event as MessageEvent<string>).data) as TallyUpdate;
+      streamed = { base: data.tally, update };
+      // Voting closed under us: reload so the outcome and results render.
+      if (update.status !== data.proposal.status) void invalidateAll();
+    });
+    return () => source.close();
+  });
+
+  const trail = $derived(tally.your_trail);
 
   // Delegation-chain nodes, when the viewer's weight flows through a chain.
   const chainNodes = $derived.by(() => {
@@ -101,9 +127,9 @@
 
   const closedResult = $derived.by(() => {
     if (data.proposal.status !== 'closed') return null;
-    const yes = parseFloat(data.tally.yes);
-    const no = parseFloat(data.tally.no);
-    if (yes + no + parseFloat(data.tally.abstain) === 0) return 'No votes were counted.';
+    const yes = parseFloat(tally.yes);
+    const no = parseFloat(tally.no);
+    if (yes + no + parseFloat(tally.abstain) === 0) return 'No votes were counted.';
     return yes > no ? 'Passed' : no > yes ? 'Failed' : 'Tied';
   });
 
@@ -279,7 +305,7 @@
 
     <!-- LIVE TALLY -->
     <div class="rounded border border-line bg-card p-5">
-      <TallyDisplay tally={data.tally} live={data.proposal.status === 'voting'} />
+      <TallyDisplay {tally} live={isVoting} />
     </div>
   </aside>
 </section>

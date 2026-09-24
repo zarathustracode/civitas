@@ -363,6 +363,7 @@ dependencies = [
  "civitas-core",
  "civitas-db",
  "civitas-types",
+ "futures-util",
  "hyper",
  "lettre",
  "serde",

@@ -111,6 +111,7 @@ impl TestApp {
         tweak(&mut config);
         let mailer = Arc::new(CapturingMailer::default());
         let state = AppState::new(pool.clone(), config, mailer.clone());
+        state.tally_hub().start(pool.clone());
         Some(Self {
             pool,
             router: router(state),

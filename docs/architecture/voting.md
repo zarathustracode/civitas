@@ -160,6 +160,14 @@ Within a single Postgres transaction, an `INSERT INTO votes` is serialized at ro
 
 For tallying, the API reads at a snapshot via a `READ COMMITTED` transaction. The result is a tally as-of the read time. Two clients tallying simultaneously may see slightly different numbers if a vote lands between their reads — that is acceptable and accurate ("the tally at moment T was X").
 
+## Live updates
+
+`GET /proposals/{id}/tally/stream` is a server-sent-events stream of the public aggregate (`yes`, `no`, `abstain`, voter counts, and the proposal's `status`). The per-viewer trail is not streamed.
+
+Every write that can move a tally — a vote, a delegation created or revoked, a status change, an email verification or account deletion (the eligible set) — issues `pg_notify('civitas_tally', …)` in its own transaction, so listeners hear only about committed writes, and every API process hears about every write. Each API process holds one `LISTEN` connection (it counts against `DATABASE_MAX_CONNECTIONS`), coalesces notifications for 250 ms, and recomputes each watched proposal once on a single task; all viewers of a proposal share that result. After the listener reconnects it recomputes everything watched, because notifications sent while it was disconnected are lost.
+
+The stream is a convenience, not a source of truth: the numbers it carries come from the same pure tally function as `GET /proposals/{id}/tally`.
+
 ## Defense in depth
 
 Even though delegation cycles are rejected at write time, the tally function carries a `MAX_DEPTH` fuse. If a corrupted dataset somehow contains a cycle, the algorithm aborts the offending walk and contributes no weight, rather than looping forever. Such an event is logged at error level for investigation.

@@ -198,6 +198,20 @@ pub struct TallyResponse {
     pub your_trail: Option<UserTrail>,
 }
 
+/// One `tally` event on `GET /proposals/:id/tally/stream`: the public
+/// aggregate of [`TallyResponse`] without the per-viewer trail, plus the
+/// proposal's status so a watching page notices voting close.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct TallyUpdate {
+    pub proposal_id: ProposalId,
+    pub status: ProposalStatus,
+    pub yes: Weight,
+    pub no: Weight,
+    pub abstain: Weight,
+    pub eligible_voters: usize,
+    pub counted_voters: usize,
+}
+
 /// How the requesting user's weight reaches a vote, with display names.
 /// Mirrors `civitas_core::tally::TrailKind` but resolves UUIDs to names so
 /// the frontend can render without a second round-trip.

@@ -9,6 +9,7 @@ use sqlx::PgPool;
 use civitas_auth::verification::EmailVerificationProvider;
 
 use crate::config::Config;
+use crate::live::TallyHub;
 use crate::mailer::Mailer;
 
 #[derive(Clone)]
@@ -19,6 +20,7 @@ pub struct AppStateInner {
     pub config: Config,
     pub email_verification: EmailVerificationProvider,
     pub mailer: Arc<dyn Mailer>,
+    pub tally_hub: Arc<TallyHub>,
 }
 
 impl AppState {
@@ -29,6 +31,7 @@ impl AppState {
             config,
             email_verification: EmailVerificationProvider::default(),
             mailer,
+            tally_hub: Arc::default(),
         }))
     }
 
@@ -50,5 +53,11 @@ impl AppState {
     #[must_use]
     pub fn mailer(&self) -> Arc<dyn Mailer> {
         Arc::clone(&self.0.mailer)
+    }
+
+    /// Live tally fan-out. Updates flow only after [`TallyHub::start`].
+    #[must_use]
+    pub fn tally_hub(&self) -> &Arc<TallyHub> {
+        &self.0.tally_hub
     }
 }
