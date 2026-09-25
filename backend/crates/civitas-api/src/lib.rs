@@ -65,6 +65,7 @@ pub fn router(state: AppState) -> Router {
         .nest("/delegations", routes::delegations::router())
         .nest("/comments", routes::comments::router())
         .nest("/users", routes::users::router())
+        .nest("/operator", routes::operator::router())
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             security::verify_origin,

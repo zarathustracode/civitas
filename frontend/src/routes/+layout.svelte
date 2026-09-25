@@ -18,6 +18,7 @@
   const path = $derived($page.url.pathname);
   const onProposals = $derived(path === '/proposals' || path.startsWith('/proposals/'));
   const onDelegations = $derived(path.startsWith('/delegations'));
+  const onOperator = $derived(path.startsWith('/operator'));
 
   const navLink = 'pb-0.5 transition-colors hover:text-ink-900 focus-visible:text-ink-900';
   const navActive = 'border-b border-ink-900 text-ink-900';
@@ -60,6 +61,14 @@
           class="{navLink} {onDelegations ? navActive : navIdle}"
           aria-current={onDelegations ? 'page' : undefined}>Delegations</a
         >
+        {#if data.currentUser?.is_operator}
+          <!-- No room on phones; the profile page links it there. -->
+          <a
+            href="/operator"
+            class="hidden sm:inline {navLink} {onOperator ? navActive : navIdle}"
+            aria-current={onOperator ? 'page' : undefined}>Operator</a
+          >
+        {/if}
         {#if data.currentUser}
           <a
             href="/profile"

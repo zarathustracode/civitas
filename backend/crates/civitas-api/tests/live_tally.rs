@@ -7,64 +7,13 @@ use std::time::Duration;
 
 use axum::body::{Body, BodyDataStream};
 use axum::http::{header, Request, StatusCode};
-use chrono::Utc;
 use futures_util::StreamExt;
 use serde_json::{json, Value};
 use tower::ServiceExt;
 
-use civitas_db::{proposals, topics, users};
-use civitas_types::{ProposalId, ProposalStatus};
+use civitas_types::ProposalId;
 
-use common::{unique, TestApp};
-
-/// A proposal in its voting window, authored by `author_email`.
-async fn voting_proposal(app: &TestApp, author_email: &str) -> ProposalId {
-    let author = users::find_by_email(&app.pool, author_email)
-        .await
-        .unwrap()
-        .unwrap();
-    let mut tx = app.pool.begin().await.unwrap();
-    let topic = topics::create(
-        &mut tx,
-        author.id,
-        topics::NewTopic {
-            slug: &unique("live"),
-            name: "Live topic",
-            description: "",
-        },
-    )
-    .await
-    .unwrap();
-    let proposal = proposals::create(
-        &mut tx,
-        proposals::NewProposal {
-            topic_id: topic.id,
-            author_id: author.id,
-            title: "Watched proposal",
-            summary: "Short.",
-            body: "Body.",
-        },
-    )
-    .await
-    .unwrap();
-    let now = Utc::now();
-    for (target, window) in [
-        (ProposalStatus::Deliberation, None),
-        (
-            ProposalStatus::Voting,
-            Some((
-                now - chrono::Duration::minutes(1),
-                now + chrono::Duration::hours(1),
-            )),
-        ),
-    ] {
-        proposals::transition_status(&mut tx, author.id, proposal.id, target, window)
-            .await
-            .unwrap();
-    }
-    tx.commit().await.unwrap();
-    proposal.id
-}
+use common::{voting_proposal, TestApp};
 
 struct EventStream {
     body: BodyDataStream,

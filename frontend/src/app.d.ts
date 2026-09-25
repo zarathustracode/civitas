@@ -1,5 +1,5 @@
 // See https://svelte.dev/docs/kit/types#app for reference on these interfaces.
-import type { UserResponse } from '$lib/types/domain';
+import type { CurrentUser } from '$lib/types/domain';
 
 declare global {
   namespace App {
@@ -10,11 +10,11 @@ declare global {
     }
     // Populated in hooks.server.ts; available everywhere via event.locals.
     interface Locals {
-      currentUser: UserResponse | null;
+      currentUser: CurrentUser | null;
     }
     // Returned from +layout.server.ts to all pages via `data` prop.
     interface PageData {
-      currentUser: UserResponse | null;
+      currentUser: CurrentUser | null;
     }
     // interface PageState {}
     // interface Platform {}

@@ -1,0 +1,44 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select\n            count(*) as \"total!\",\n            count(*) filter (where deleted_at is null and email_verified_at is not null)\n                as \"verified!\",\n            count(*) filter (where deleted_at is null and email_verified_at is null)\n                as \"unverified!\",\n            count(*) filter (where deleted_at is not null) as \"deleted!\",\n            count(*) filter (where created_at > now() - interval '7 days')\n                as \"registered_last_7_days!\"\n        from users\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "total!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "verified!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "unverified!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "deleted!",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "registered_last_7_days!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "d29e694e32b08659d43a9423f21371b15ac0be347199abeb4141216d675fab5a"
+}

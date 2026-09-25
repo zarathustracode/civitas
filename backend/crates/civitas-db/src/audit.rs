@@ -70,6 +70,49 @@ pub async fn list_for_entity<'c, E: PgExecutor<'c>>(
         .collect())
 }
 
+/// The most recent audit rows across every entity, newest first. Pass the
+/// last id of a previous page as `before` to continue from there; an
+/// unknown `before` yields no rows.
+pub async fn list_recent<'c, E: PgExecutor<'c>>(
+    conn: E,
+    before: Option<AuditLogId>,
+    limit: i64,
+) -> DbResult<Vec<AuditRow>> {
+    let rows = sqlx::query!(
+        r#"
+        select
+            id           as "id: AuditLogId",
+            actor_id     as "actor_id: UserId",
+            action,
+            entity_type,
+            entity_id,
+            metadata     as "metadata!: JsonValue",
+            created_at
+        from audit_log
+        where $1::uuid is null
+           or (created_at, id) < (select created_at, id from audit_log where id = $1)
+        order by created_at desc, id desc
+        limit $2
+        "#,
+        before.map(AuditLogId::into_inner),
+        limit,
+    )
+    .fetch_all(conn)
+    .await?;
+    Ok(rows
+        .into_iter()
+        .map(|r| AuditRow {
+            id: r.id,
+            actor_id: r.actor_id,
+            action: r.action,
+            entity_type: r.entity_type,
+            entity_id: r.entity_id,
+            metadata: r.metadata,
+            created_at: r.created_at,
+        })
+        .collect())
+}
+
 /// Stable audit action codes.
 ///
 /// Adding a new variant is a deliberate act — it appears in operator

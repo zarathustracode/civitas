@@ -23,6 +23,15 @@ pub struct UserResponse {
     pub created_at: DateTime<Utc>,
 }
 
+/// `GET /auth/me`: the signed-in user plus what the UI may offer them.
+#[derive(Debug, Clone, Serialize)]
+pub struct MeResponse {
+    #[serde(flatten)]
+    pub user: UserResponse,
+    /// Listed in `OPERATOR_EMAILS`; unlocks the operator dashboard.
+    pub is_operator: bool,
+}
+
 impl From<civitas_db::users::User> for UserResponse {
     fn from(u: civitas_db::users::User) -> Self {
         Self {
@@ -379,4 +388,84 @@ pub struct PasswordResetRequest {
 pub struct PasswordResetCompleteRequest {
     pub token: String,
     pub new_password: String,
+}
+
+// ── operator dashboard ────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, Serialize)]
+pub struct OperatorOverview {
+    pub users: OperatorUserCounts,
+    pub proposals: OperatorProposalCounts,
+    pub active_delegations: i64,
+    pub active_sessions: i64,
+    /// Proposals currently in voting, closing soonest first.
+    pub voting: Vec<OperatorVotingProposal>,
+    pub generated_at: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct OperatorUserCounts {
+    pub total: i64,
+    pub verified: i64,
+    pub unverified: i64,
+    pub deleted: i64,
+    pub registered_last_7_days: i64,
+}
+
+impl From<civitas_db::stats::UserCounts> for OperatorUserCounts {
+    fn from(c: civitas_db::stats::UserCounts) -> Self {
+        Self {
+            total: c.total,
+            verified: c.verified,
+            unverified: c.unverified,
+            deleted: c.deleted,
+            registered_last_7_days: c.registered_last_7_days,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Default, Serialize)]
+pub struct OperatorProposalCounts {
+    pub draft: i64,
+    pub deliberation: i64,
+    pub voting: i64,
+    pub closed: i64,
+}
+
+impl FromIterator<(ProposalStatus, i64)> for OperatorProposalCounts {
+    fn from_iter<I: IntoIterator<Item = (ProposalStatus, i64)>>(iter: I) -> Self {
+        let mut counts = Self::default();
+        for (status, n) in iter {
+            match status {
+                ProposalStatus::Draft => counts.draft = n,
+                ProposalStatus::Deliberation => counts.deliberation = n,
+                ProposalStatus::Voting => counts.voting = n,
+                ProposalStatus::Closed => counts.closed = n,
+            }
+        }
+        counts
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct OperatorVotingProposal {
+    pub id: ProposalId,
+    pub title: String,
+    pub voting_ends_at: Option<DateTime<Utc>>,
+    /// Eligible users whose weight reached a vote, directly or delegated.
+    pub counted_voters: usize,
+    pub eligible_voters: usize,
+}
+
+/// One row of the deployment-wide audit feed. Unlike [`AuditEntryResponse`]
+/// it names the entity, since the feed spans all of them.
+#[derive(Debug, Clone, Serialize)]
+pub struct OperatorAuditEntry {
+    pub id: civitas_types::AuditLogId,
+    pub actor_display_name: Option<String>,
+    pub action: String,
+    pub entity_type: String,
+    pub entity_id: uuid::Uuid,
+    pub metadata: serde_json::Value,
+    pub created_at: DateTime<Utc>,
 }

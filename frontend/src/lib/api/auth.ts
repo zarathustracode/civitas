@@ -1,4 +1,4 @@
-import type { User } from '$lib/types/domain';
+import type { CurrentUser, User } from '$lib/types/domain';
 import { apiFetch } from './client';
 
 /**
@@ -8,8 +8,8 @@ import { apiFetch } from './client';
 export async function getCurrentUser(
   customFetch?: typeof fetch,
   forwardHeaders?: Headers
-): Promise<User | null> {
-  return apiFetch<User | null>('/auth/me', {
+): Promise<CurrentUser | null> {
+  return apiFetch<CurrentUser | null>('/auth/me', {
     fetch: customFetch,
     forwardHeaders,
     allowUnauthenticated: true

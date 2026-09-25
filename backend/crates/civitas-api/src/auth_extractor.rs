@@ -29,6 +29,10 @@ pub struct AuthSession {
 
 pub struct OptionalAuth(pub Option<AuthSession>);
 
+/// An authenticated deployment operator (listed in `OPERATOR_EMAILS`).
+/// Anyone else is refused with 403.
+pub struct OperatorSession(pub AuthSession);
+
 #[async_trait]
 impl FromRequestParts<AppState> for AuthSession {
     type Rejection = ApiError;
@@ -66,5 +70,21 @@ impl FromRequestParts<AppState> for OptionalAuth {
             Err(ApiError::Unauthorized) => Ok(OptionalAuth(None)),
             Err(e) => Err(e),
         }
+    }
+}
+
+#[async_trait]
+impl FromRequestParts<AppState> for OperatorSession {
+    type Rejection = ApiError;
+
+    async fn from_request_parts(
+        parts: &mut Parts,
+        state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
+        let session = AuthSession::from_request_parts(parts, state).await?;
+        if !state.config().is_operator(&session.user.email) {
+            return Err(ApiError::Forbidden);
+        }
+        Ok(OperatorSession(session))
     }
 }

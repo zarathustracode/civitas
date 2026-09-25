@@ -63,6 +63,15 @@
     </div>
   </dl>
 
+  {#if user.is_operator}
+    <p class="mt-6 max-w-2xl text-[15px]">
+      You operate this deployment.
+      <a href="/operator" class="font-medium text-accent-600 underline"
+        >Open the operator dashboard →</a
+      >
+    </p>
+  {/if}
+
   <form method="POST" action="/auth/logout" class="mt-6">
     <Button type="submit" variant="secondary">Log out</Button>
   </form>

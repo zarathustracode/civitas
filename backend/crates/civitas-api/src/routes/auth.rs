@@ -19,7 +19,7 @@ use crate::auth_extractor::AuthSession;
 use crate::client_info::ClientInfo;
 use crate::cookies::{clear_session_cookie, session_cookie};
 use crate::dto::{
-    LoginRequest, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
+    LoginRequest, MeResponse, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
     RegisterResponse, ResendVerificationRequest, UserResponse, VerifyEmailRequest,
 };
 use crate::error::{ApiError, ApiResult};
@@ -143,8 +143,12 @@ async fn logout_handler(
     Ok((jar.add(cleared), StatusCode::NO_CONTENT))
 }
 
-async fn me_handler(auth: AuthSession) -> Json<UserResponse> {
-    Json(auth.user.into())
+async fn me_handler(State(state): State<AppState>, auth: AuthSession) -> Json<MeResponse> {
+    let is_operator = state.config().is_operator(&auth.user.email);
+    Json(MeResponse {
+        user: auth.user.into(),
+        is_operator,
+    })
 }
 
 async fn verify_email_handler(

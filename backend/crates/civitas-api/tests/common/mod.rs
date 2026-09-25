@@ -20,9 +20,13 @@ use sqlx::PgPool;
 use tower::ServiceExt;
 use uuid::Uuid;
 
+use chrono::{Duration, Utc};
+
 use civitas_api::config::{CookieConfig, MailConfig, RateLimitConfig};
 use civitas_api::mailer::{Mail, Mailer, MailerError};
 use civitas_api::{router, AppState, Config};
+use civitas_db::{proposals, topics, users};
+use civitas_types::{ProposalId, ProposalStatus};
 
 pub const PASSWORD: &str = "correct horse battery staple";
 pub const PEER: &str = "192.0.2.10:52000";
@@ -74,6 +78,10 @@ pub fn unique(prefix: &str) -> String {
     format!("{prefix}-{}", Uuid::now_v7().simple())
 }
 
+pub fn unique_email(prefix: &str) -> String {
+    format!("{}@example.com", unique(prefix))
+}
+
 pub fn test_config(database_url: &str) -> Config {
     Config {
         database_url: database_url.to_string(),
@@ -94,6 +102,7 @@ pub fn test_config(database_url: &str) -> Config {
             global_burst: 1_000,
             global_replenish_ms: 1,
         },
+        operator_emails: Vec::new(),
     }
 }
 
@@ -176,7 +185,13 @@ impl TestApp {
 
     /// Register and verify a fresh account; returns its email.
     pub async fn verified_user(&self, prefix: &str) -> String {
-        let email = format!("{}@example.com", unique(prefix));
+        let email = unique_email(prefix);
+        self.register_verified(&email, prefix).await;
+        email
+    }
+
+    /// Register and verify an account under `email`.
+    pub async fn register_verified(&self, email: &str, prefix: &str) {
         let registered = self
             .post(
                 "/auth/register",
@@ -198,7 +213,6 @@ impl TestApp {
             .post("/auth/verify-email", None, json!({ "token": token }))
             .await;
         assert_eq!(verified.status, StatusCode::OK, "{:?}", verified.body);
-        email
     }
 
     /// Log in with extra request headers; returns the full response.
@@ -220,4 +234,50 @@ impl TestApp {
         assert_eq!(login.status, StatusCode::OK, "{:?}", login.body);
         (email, login.session_cookie())
     }
+}
+
+/// A proposal in its voting window, authored by `author_email`.
+pub async fn voting_proposal(app: &TestApp, author_email: &str) -> ProposalId {
+    let author = users::find_by_email(&app.pool, author_email)
+        .await
+        .unwrap()
+        .unwrap();
+    let mut tx = app.pool.begin().await.unwrap();
+    let topic = topics::create(
+        &mut tx,
+        author.id,
+        topics::NewTopic {
+            slug: &unique("topic"),
+            name: "Test topic",
+            description: "",
+        },
+    )
+    .await
+    .unwrap();
+    let proposal = proposals::create(
+        &mut tx,
+        proposals::NewProposal {
+            topic_id: topic.id,
+            author_id: author.id,
+            title: "Test proposal",
+            summary: "Short.",
+            body: "Body.",
+        },
+    )
+    .await
+    .unwrap();
+    let now = Utc::now();
+    for (target, window) in [
+        (ProposalStatus::Deliberation, None),
+        (
+            ProposalStatus::Voting,
+            Some((now - Duration::minutes(1), now + Duration::hours(1))),
+        ),
+    ] {
+        proposals::transition_status(&mut tx, author.id, proposal.id, target, window)
+            .await
+            .unwrap();
+    }
+    tx.commit().await.unwrap();
+    proposal.id
 }

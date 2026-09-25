@@ -26,6 +26,7 @@ pub mod delegations;
 pub mod eligibility;
 pub mod proposals;
 pub mod sessions;
+pub mod stats;
 pub mod tally_events;
 pub mod tokens;
 pub mod topics;
