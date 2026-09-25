@@ -47,6 +47,33 @@ impl CapturingMailer {
     pub fn sent(&self) -> Vec<Mail> {
         self.0.lock().unwrap().clone()
     }
+
+    /// Mail is sent from a background task; wait for the `nth` (0-based)
+    /// message to `to` whose text contains `fragment` (e.g. a link path).
+    pub async fn wait_for(&self, to: &str, fragment: &str, nth: usize) -> Mail {
+        for _ in 0..200 {
+            if let Some(mail) = self
+                .sent()
+                .into_iter()
+                .filter(|m| m.to == to && m.text.contains(fragment))
+                .nth(nth)
+            {
+                return mail;
+            }
+            tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+        }
+        panic!("no mail #{nth} to {to} containing {fragment:?}");
+    }
+}
+
+/// The `token` query parameter of the first link in a mail's text part.
+pub fn token_in(mail: &Mail) -> String {
+    let start = mail.text.find("token=").expect("mail carries a token") + "token=".len();
+    mail.text[start..]
+        .split(|c: char| c.is_whitespace())
+        .next()
+        .unwrap()
+        .to_string()
 }
 
 pub struct TestApp {

@@ -91,8 +91,10 @@ New providers (`EidProvider`, `WebAuthnProvider`, `PhoneSmsProvider`) implement 
 
 Authentication ("you are the same person who registered") and verification ("you are who you claim to be") are different problems. v1 conflates them lightly because email-and-password is both, but the architecture keeps them separate:
 
-- **Authentication** in v1: email + password (Argon2id), session cookie.
+- **Authentication** in v1: email + password (Argon2id), session cookie. Since v0.2, an emailed sign-in link can stand in for the password (below).
 - **Verification** in v1: email token, optional phone token.
+
+Sign-in links (`/auth/login-link/*`) authenticate by control of the mailbox — the same assurance email verification already relies on — so they are offered only to accounts whose email is verified. A link lasts 15 minutes and opens one session; requesting a new link, or completing a password reset, retires any unused one. Opening the emailed URL only shows a confirmation page; the token is spent by the button on that page (a POST), so mail scanners that prefetch links cannot use it up.
 
 Adding a verification rung never requires changing the authentication mechanism, and vice versa. WebAuthn, when it lands, will be added as both an authentication mechanism and a verification rung — but those are independent decisions.
 

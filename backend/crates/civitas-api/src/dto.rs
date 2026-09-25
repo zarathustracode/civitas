@@ -380,6 +380,16 @@ pub struct ResendVerificationRequest {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+pub struct LoginLinkRequest {
+    pub email: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct LoginLinkCompleteRequest {
+    pub token: String,
+}
+
+#[derive(Debug, Clone, Deserialize)]
 pub struct PasswordResetRequest {
     pub email: String,
 }

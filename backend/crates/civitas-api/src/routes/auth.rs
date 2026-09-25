@@ -1,9 +1,9 @@
 //! Authentication routes.
 //!
-//! Registration and password reset issue tokens and hand them to the
-//! mailer (`crate::mailer`); delivery runs in the background so handlers
-//! never block on SMTP. Endpoints that take an email address respond
-//! identically whether or not an account exists — no enumeration.
+//! Registration, password reset, and sign-in links issue tokens and hand
+//! them to the mailer (`crate::mailer`); delivery runs in the background so
+//! handlers never block on SMTP. Endpoints that take an email address
+//! respond identically whether or not an account exists — no enumeration.
 
 use axum::extract::State;
 use axum::http::StatusCode;
@@ -13,14 +13,15 @@ use axum_extra::extract::cookie::CookieJar;
 
 use civitas_auth::session::DEFAULT_LIFETIME;
 use civitas_auth::verification::VerificationProvider;
-use civitas_auth::{login, password_reset, register, session};
+use civitas_auth::{login, login_link, password_reset, register, session};
 
 use crate::auth_extractor::AuthSession;
 use crate::client_info::ClientInfo;
 use crate::cookies::{clear_session_cookie, session_cookie};
 use crate::dto::{
-    LoginRequest, MeResponse, PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest,
-    RegisterResponse, ResendVerificationRequest, UserResponse, VerifyEmailRequest,
+    LoginLinkCompleteRequest, LoginLinkRequest, LoginRequest, MeResponse,
+    PasswordResetCompleteRequest, PasswordResetRequest, RegisterRequest, RegisterResponse,
+    ResendVerificationRequest, UserResponse, VerifyEmailRequest,
 };
 use crate::error::{ApiError, ApiResult};
 use crate::mailer;
@@ -32,6 +33,8 @@ pub fn router() -> Router<AppState> {
         .route("/login", post(login_handler))
         .route("/logout", post(logout_handler))
         .route("/me", get(me_handler))
+        .route("/login-link/request", post(login_link_request_handler))
+        .route("/login-link/complete", post(login_link_complete_handler))
         .route("/verify-email", post(verify_email_handler))
         .route("/resend-verification", post(resend_verification_handler))
         .route(
@@ -118,6 +121,59 @@ async fn login_handler(
         .map_err(ApiError::from)?
         .ok_or(ApiError::Internal(anyhow::anyhow!(
             "user disappeared after login"
+        )))?;
+
+    let cookie = session_cookie(
+        &state.config().cookie,
+        issued.cookie_value,
+        DEFAULT_LIFETIME.num_days(),
+    );
+    Ok((jar.add(cookie), Json(user.into())))
+}
+
+async fn login_link_request_handler(
+    State(state): State<AppState>,
+    Json(body): Json<LoginLinkRequest>,
+) -> ApiResult<StatusCode> {
+    // We deliberately do not reveal whether the email matched a user.
+    if let Some(issued) =
+        login_link::request(state.pool(), &body.email, login_link::DEFAULT_LINK_LIFETIME)
+            .await
+            .map_err(ApiError::from)?
+    {
+        mailer::send_in_background(
+            state.mailer(),
+            mailer::login_link_mail(
+                &state.config().public_base_url,
+                &body.email,
+                &issued.plaintext,
+            ),
+        );
+    }
+    Ok(StatusCode::ACCEPTED)
+}
+
+async fn login_link_complete_handler(
+    State(state): State<AppState>,
+    jar: CookieJar,
+    client: ClientInfo,
+    Json(body): Json<LoginLinkCompleteRequest>,
+) -> ApiResult<(CookieJar, Json<UserResponse>)> {
+    let issued = login_link::complete(
+        state.pool(),
+        &body.token,
+        client.user_agent.as_deref(),
+        client.ip_address.as_deref(),
+        DEFAULT_LIFETIME,
+    )
+    .await
+    .map_err(ApiError::from)?;
+
+    let user = civitas_db::users::find_by_id(state.pool(), issued.row.user_id)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::Internal(anyhow::anyhow!(
+            "user disappeared after sign-in"
         )))?;
 
     let cookie = session_cookie(
