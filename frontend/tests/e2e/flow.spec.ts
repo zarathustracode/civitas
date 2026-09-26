@@ -112,18 +112,13 @@ test('seeded user can cast a vote on the open voting proposal', async ({ page, r
   expect(parseFloat(tallyBody.yes)).toBeGreaterThanOrEqual(1);
   expect(tallyBody.counted_voters).toBeGreaterThanOrEqual(1);
 
-  // The proposal page should now show "How your weight flows" with a Direct entry.
-  await expect(page.getByRole('heading', { name: 'How your weight flows' })).toBeVisible();
-  await expect(page.getByText(/voted\s+Yes\s+directly/i)).toBeVisible();
+  // The "Your standing" panel reflects the direct vote.
+  await expect(page.getByText(/Your weight counts as\s+Yes/)).toBeVisible();
 
-  // Change the vote to No: the page should show a "Your previous votes"
-  // section listing the superseded Yes, and the trail should now read No.
+  // Change the vote to No: the standing panel follows.
   await page.getByRole('button', { name: 'No', exact: true }).click();
   await page.getByRole('button', { name: 'Confirm vote' }).click();
-  await expect(
-    page.getByRole('heading', { name: 'Your previous votes on this proposal' })
-  ).toBeVisible();
-  await expect(page.getByText(/voted\s+No\s+directly/i)).toBeVisible();
+  await expect(page.getByText(/Your weight counts as\s+No/)).toBeVisible();
 });
 
 /**
@@ -212,9 +207,9 @@ test('bob delegates to carol and the chain renders on the proposal page', async 
 
   // Bob visits the new proposal: trail should resolve through Carol.
   await page.goto(`/proposals/${newProposal.id}`);
-  await expect(page.getByRole('heading', { name: 'How your weight flows' })).toBeVisible();
-  await expect(page.getByText(/Carol \(popular delegate\)/)).toBeVisible();
-  await expect(page.getByText(/voted\s+Yes/)).toBeVisible();
+  await expect(page.getByText(/Your vote is\s+delegated/)).toBeVisible();
+  await expect(page.getByText('Carol (popular delegate)', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/Voted Yes/)).toBeVisible();
 });
 
 /**
@@ -287,21 +282,18 @@ test('voting proposals auto-close after their deadline and show results', async 
   }
   expect(final).toBe('closed');
 
-  // Visit the closed proposal: the results banner should render with the
-  // "No verdict" copy (no eligible user voted in the 2-second window) and
-  // the "Cast your vote" UI must not be present.
+  // Visit the closed proposal: the outcome reads "No votes were counted"
+  // (nobody voted in the 2-second window) and the ballot is gone.
   await page.goto(`/proposals/${proposal.id}`);
-  await expect(
-    page.getByRole('heading', {
-      name: /No verdict|Yes \(|No \(|Abstain \(|Tie/
-    })
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Cast your vote' })).toHaveCount(0);
+  await expect(page.getByText('No votes were counted.')).toBeVisible();
+  const ballot = page.getByRole('region', { name: 'Cast your vote' });
+  await expect(ballot.getByText('Voting has closed on this proposal.')).toBeVisible();
+  await expect(ballot.getByRole('button')).toHaveCount(0);
 
   // The audit timeline should record at least three events: created,
   // → deliberation, → voting, plus the system auto-close. Open the
   // disclosure and assert the system close is present.
-  const summary = page.getByText(/Audit timeline \(\d+\)/);
+  const summary = page.getByText(/Audit timeline · \d+/);
   await expect(summary).toBeVisible();
   await summary.click();
   await expect(page.getByText('auto: voting → closed')).toBeVisible();

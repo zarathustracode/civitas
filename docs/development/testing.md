@@ -125,6 +125,8 @@ Coverage is a **floor**. Tests should exist because they would catch a real regr
 
 `axe-core` runs in CI against built pages. Failures block the PR.
 
+The scan is `frontend/tests/e2e/a11y.spec.ts`, run by the `e2e` workflow against the production build and a seeded API. It checks every route — anonymous, signed in, and the operator dashboard, plus states such as an open ballot and a form error — against the WCAG 2.1 A and AA rules. A new route or a new page state gets a line in that file.
+
 In addition, manual keyboard-only testing of new pages before sign-off. A page that cannot be operated keyboard-only is not done.
 
 ## Performance tests

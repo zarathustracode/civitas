@@ -52,7 +52,9 @@
             c
           ]}"
         >
-          {label[c]}<span class="font-mono text-[11px] font-normal text-ink-400">{sub[c]}</span>
+          {label[c]}<span aria-hidden="true" class="font-mono text-[11px] font-normal text-ink-400"
+            >{sub[c]}</span
+          >
         </button>
       {/each}
     </div>

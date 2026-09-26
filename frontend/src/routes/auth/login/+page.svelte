@@ -76,7 +76,11 @@
 
     <p class="border-t border-line pt-5 text-sm text-ink-600">
       Rather not type a password?
-      <a href="/auth/login-link" class="text-accent-600 hover:underline">Email me a sign-in link</a>
+      <a
+        href="/auth/login-link"
+        class="text-accent-600 underline underline-offset-2 hover:text-accent-700"
+        >Email me a sign-in link</a
+      >
     </p>
   </div>
 </section>

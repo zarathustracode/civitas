@@ -265,7 +265,7 @@ impl Template<'_> {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f1ea;">
 <tr><td align="center" style="padding:32px 16px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#fbfaf6;border:1px solid #dcd8cd;border-radius:6px;">
-<tr><td style="padding:32px 32px 8px;font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#908d80;">Civitas</td></tr>
+<tr><td style="padding:32px 32px 8px;font-family:Georgia,'Times New Roman',serif;font-size:13px;letter-spacing:0.12em;text-transform:uppercase;color:#6a675d;">Civitas</td></tr>
 <tr><td style="padding:0 32px;font-family:Georgia,'Times New Roman',serif;font-size:26px;line-height:1.2;font-weight:bold;color:#1b1a14;">{heading}</td></tr>
 <tr><td style="padding:16px 32px 0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:1.55;color:#2c2a22;">{intro}</td></tr>
 <tr><td style="padding:24px 32px 0;">
@@ -273,7 +273,7 @@ impl Template<'_> {
 </td></tr>
 <tr><td style="padding:20px 32px 0;font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:1.5;color:#56544a;">{validity}</td></tr>
 <tr><td style="padding:12px 32px 24px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#56544a;">If the button does not work, copy this address into your browser:<br><a href="{link}" style="color:#2b3a8c;word-break:break-all;">{link}</a></td></tr>
-<tr><td style="padding:24px 32px 32px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#908d80;border-top:1px solid #dcd8cd;">{not_you}</td></tr>
+<tr><td style="padding:24px 32px 32px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.5;color:#6a675d;border-top:1px solid #dcd8cd;">{not_you}</td></tr>
 </table>
 </td></tr>
 </table>

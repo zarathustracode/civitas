@@ -11,8 +11,8 @@ import { expect, test } from '@playwright/test';
 test('landing page renders with title and CTA', async ({ page }) => {
   await page.goto('/');
   await expect(page).toHaveTitle(/Civitas/);
-  await expect(page.getByRole('heading', { level: 1, name: 'Civitas' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Browse proposals' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: /Vote directly/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Browse proposals/ }).first()).toBeVisible();
 });
 
 test('about page links to governance and source', async ({ page }) => {
@@ -24,12 +24,13 @@ test('about page links to governance and source', async ({ page }) => {
 test('proposals list page shows status filters', async ({ page }) => {
   await page.goto('/proposals');
   await expect(page.getByRole('heading', { level: 1, name: 'Proposals' })).toBeVisible();
-  // The Voting filter is the default — should be the active page.
-  // `exact` so we match the filter pill, not status badges inside proposal cards.
-  await expect(page.getByRole('link', { name: 'Voting', exact: true })).toHaveAttribute(
-    'aria-current',
-    'page'
-  );
+  // Filters are toggle buttons labelled with their count; All is the default.
+  const all = page.getByRole('button', { name: /^All \d+$/ });
+  const voting = page.getByRole('button', { name: /^Voting \d+$/ });
+  await expect(all).toHaveAttribute('aria-pressed', 'true');
+  await voting.click();
+  await expect(voting).toHaveAttribute('aria-pressed', 'true');
+  await expect(all).toHaveAttribute('aria-pressed', 'false');
 });
 
 test('topics list page renders', async ({ page }) => {

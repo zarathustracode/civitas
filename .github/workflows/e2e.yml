@@ -1,0 +1,109 @@
+name: e2e
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/e2e.yml"
+  pull_request:
+    paths:
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/e2e.yml"
+
+# Playwright against the production frontend build and a real API over a
+# seeded Postgres: the smoke and flow suites, plus the axe-core scan in
+# tests/e2e/a11y.spec.ts, where any WCAG 2.1 A/AA violation fails the job.
+
+env:
+  CARGO_TERM_COLOR: always
+  SQLX_OFFLINE: "true"
+
+jobs:
+  e2e:
+    name: playwright + axe
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: civitas
+          POSTGRES_PASSWORD: civitas
+          POSTGRES_DB: civitas
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U civitas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://civitas:civitas@localhost:5432/civitas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: backend
+
+      - name: Build the API
+        working-directory: backend
+        run: cargo build -p civitas-api --bins
+
+      - name: Seed the database
+        working-directory: backend
+        run: ./target/debug/seed
+
+      - name: Start the API
+        working-directory: backend
+        env:
+          PUBLIC_BASE_URL: http://127.0.0.1:5173
+          SMTP_FROM: "Civitas <noreply@localhost>"
+          COOKIE_SECURE: "false"
+          DEV_RETURN_VERIFICATION_TOKEN: "true"
+          OPERATOR_EMAILS: dave@example.com
+          # The auto-close flow test waits on the deadline job.
+          AUTO_CLOSE_INTERVAL_SECS: "2"
+          # Every test logs in from 127.0.0.1; one bucket must not throttle the run.
+          RATE_LIMIT_AUTH_BURST: "1000"
+          RATE_LIMIT_GLOBAL_BURST: "5000"
+        run: |
+          nohup ./target/debug/civitas-api > "$RUNNER_TEMP/api.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -sf http://127.0.0.1:8080/health && exit 0
+            sleep 1
+          done
+          cat "$RUNNER_TEMP/api.log"
+          exit 1
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright
+        working-directory: frontend
+        env:
+          CI: "true"
+          PLAYWRIGHT_USE_BUILD: "1"
+        run: pnpm test:e2e
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-failure
+          path: |
+            frontend/test-results/
+            ${{ runner.temp }}/api.log
+          retention-days: 7

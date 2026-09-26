@@ -14,7 +14,7 @@ export default {
           50: '#f4f1ea', // paper
           100: '#ece9e0', // bar track / subtle fill
           200: '#dcd8cd', // hairline borders
-          400: '#908d80', // ink3 — muted labels
+          400: '#6a675d', // ink3 — muted labels (AA on paper, card, and white)
           600: '#56544a', // ink2 — secondary text
           800: '#2c2a22', // strong text
           900: '#1b1a14' // ink — primary text
@@ -29,8 +29,8 @@ export default {
         },
         affirm: { 50: '#eef4f0', 600: '#3a6b4e' },
         oppose: { 50: '#faf1ee', 600: '#b0492f' },
-        neutral: { 600: '#8a8678' },
-        ochre: { 50: '#f6efdd', 600: '#9a7b2e' },
+        neutral: { 600: '#6a675c' },
+        ochre: { 50: '#f6efdd', 600: '#7d6425' },
         // Dark "mechanism" band.
         band: { DEFAULT: '#1b1a14', ink: '#e9e6dc', mute: '#9b988c', glow: '#7d97ff' }
       },

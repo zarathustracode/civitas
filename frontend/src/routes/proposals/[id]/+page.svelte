@@ -28,10 +28,10 @@
     return data.proposal.status === 'voting';
   });
   const cantVoteReason = $derived.by(() => {
-    if (!data.currentUser) return 'Sign in to vote on this proposal.';
-    if (!data.currentUser.email_verified) return 'Verify your email before voting.';
     if (data.proposal.status === 'closed') return 'Voting has closed on this proposal.';
     if (data.proposal.status !== 'voting') return 'This proposal is not in the voting phase.';
+    if (!data.currentUser) return 'Sign in to vote on this proposal.';
+    if (!data.currentUser.email_verified) return 'Verify your email before voting.';
     return undefined;
   });
 
@@ -389,8 +389,8 @@
     {:else}
       <p class="font-mono text-[12px] leading-[1.7] tracking-[0.04em] text-[#8f8c80]">
         You are voting directly on this topic. Delegate it from your
-        <a href="/delegations" class="text-[#cdd6ff] hover:underline">delegations</a> to let a trusted
-        citizen carry your weight — and watch the chain appear here.
+        <a href="/delegations" class="text-[#cdd6ff] underline underline-offset-2">delegations</a> to
+        let a trusted citizen carry your weight — and watch the chain appear here.
       </p>
     {/if}
   </div>
@@ -413,7 +413,9 @@
       class="rounded border border-dashed border-line px-6 py-6 font-serif text-[17px] text-ink-600"
     >
       No comments yet.
-      <a href="/proposals/{data.proposal.id}/deliberate" class="text-accent-600 hover:underline"
+      <a
+        href="/proposals/{data.proposal.id}/deliberate"
+        class="text-accent-600 underline underline-offset-2 hover:text-accent-700"
         >Open the thread</a
       > to start the discussion.
     </p>
