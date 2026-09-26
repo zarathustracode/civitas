@@ -181,10 +181,18 @@ Minimal. We avoid heavy global stores.
 
 ## Performance
 
-Targets:
+Targets, enforced in CI by `frontend/lighthouserc.cjs` (median of three runs, mobile emulation on simulated slow 4G):
 
 - Lighthouse Performance ≥ 90, Accessibility ≥ 95, Best Practices ≥ 95.
-- First Contentful Paint < 1.5 s on simulated 3G.
-- Total JS payload (parsed) < 100 KB on the home and proposal-list routes.
+- Cumulative Layout Shift ≤ 0.1.
+- JavaScript transferred < 100 KB on the home and proposal-list routes.
 
-Vite's bundle analyzer (`pnpm build --report`) helps spot regressions.
+Tracked but not enforced:
+
+- First Contentful Paint < 1.5 s. Lighthouse's simulation counts web-font requests as render-blocking, although `font-display: swap` paints the fallback first, so the estimate mostly measures font weight. Fewer weights would move it; a design change, not a regression.
+
+What holds these:
+
+- **Fonts are self-hosted** (`@fontsource/*`, imported in `app.css`), so first paint never waits on a third-party origin and no visitor address reaches a font CDN. Each face declares its subsets by `unicode-range`; browsers fetch only what a page uses.
+- **Fallbacks match the fonts' metrics.** `app.css` declares `Spectral Fallback`, `Spectral Fallback Times` and `Public Sans Fallback`: local system fonts with `size-adjust` and ascent/descent overrides, so text keeps its size when the web font swaps in. When changing a font family, recompute those values (the numbers come from the [capsize](https://github.com/seek-oss/capsize) metrics).
+- **One script bundle** (`bundleStrategy: 'single'` in `svelte.config.js`): each extra request before first paint costs a round trip on slow links, and later navigations need no fetch.

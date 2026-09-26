@@ -13,7 +13,8 @@
     "format": "prettier --write .",
     "test": "vitest --passWithNoTests",
     "test:e2e": "playwright test",
-    "test:e2e:install": "playwright install --with-deps chromium"
+    "test:e2e:install": "playwright install --with-deps chromium",
+    "lhci": "pnpm dlx @lhci/cli@0.15.1 autorun"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.3.0",
