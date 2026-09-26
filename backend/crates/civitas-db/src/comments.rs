@@ -1,5 +1,7 @@
 //! Deliberation comments.
 
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::{PgExecutor, Postgres, Transaction};
@@ -99,6 +101,28 @@ pub async fn create(
     .await?;
 
     Ok(row)
+}
+
+/// Visible comments (neither deleted nor hidden) per proposal, for the
+/// docket. Proposals with none are absent from the map.
+pub async fn count_visible_by_proposal<'c, E: PgExecutor<'c>>(
+    conn: E,
+    proposal_ids: &[ProposalId],
+) -> DbResult<HashMap<ProposalId, i64>> {
+    let ids: Vec<uuid::Uuid> = proposal_ids.iter().map(|id| id.into_inner()).collect();
+    let rows = sqlx::query!(
+        r#"
+        select proposal_id as "proposal_id: ProposalId", count(*) as "count!"
+        from deliberation_comments
+        where proposal_id = any($1) and deleted_at is null and hidden_at is null
+        group by proposal_id
+        "#,
+        &ids,
+    )
+    .fetch_all(conn)
+    .await?;
+
+    Ok(rows.into_iter().map(|r| (r.proposal_id, r.count)).collect())
 }
 
 pub async fn list_thread<'c, E: PgExecutor<'c>>(

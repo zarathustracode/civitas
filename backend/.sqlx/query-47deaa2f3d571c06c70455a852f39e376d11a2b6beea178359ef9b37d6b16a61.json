@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        select proposal_id as \"proposal_id: ProposalId\", count(*) as \"count!\"\n        from deliberation_comments\n        where proposal_id = any($1) and deleted_at is null and hidden_at is null\n        group by proposal_id\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "proposal_id: ProposalId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "47deaa2f3d571c06c70455a852f39e376d11a2b6beea178359ef9b37d6b16a61"
+}

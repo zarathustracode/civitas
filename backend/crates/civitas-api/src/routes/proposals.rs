@@ -9,7 +9,9 @@ use axum::routing::{get, post};
 use axum::{Json, Router};
 use serde::Deserialize;
 
-use civitas_core::{tally as core_tally, DelegationRecord, EligibilityPolicy, TrailKind};
+use civitas_core::{
+    tally as core_tally, DelegationRecord, EligibilityPolicy, TrailKind, VoteRecord,
+};
 use civitas_types::{ProposalId, ProposalStatus, TopicId, UserId};
 
 use civitas_db::{audit, comments, delegations, eligibility, proposals, users, votes};
@@ -107,15 +109,28 @@ async fn list_summaries(
         .await
         .map_err(ApiError::from)?;
 
+    // Votes and comment counts for the whole docket in one query each.
+    let ids: Vec<ProposalId> = rows.iter().map(|p| p.id).collect();
+    let mut votes_by_proposal: HashMap<ProposalId, Vec<VoteRecord>> = HashMap::new();
+    for vote in votes::load_active_for_proposals(state.pool(), &ids)
+        .await
+        .map_err(ApiError::from)?
+    {
+        votes_by_proposal
+            .entry(vote.proposal_id)
+            .or_default()
+            .push(vote);
+    }
+    let comment_counts = comments::count_visible_by_proposal(state.pool(), &ids)
+        .await
+        .map_err(ApiError::from)?;
+
     let mut deleg_cache: HashMap<TopicId, Vec<DelegationRecord>> = HashMap::new();
     let mut items = Vec::with_capacity(rows.len());
     for p in rows {
         let proposal_id = p.id;
         let topic_id = p.topic_id;
 
-        let active_votes = votes::load_active_for_proposal(state.pool(), proposal_id)
-            .await
-            .map_err(ApiError::from)?;
         // Cache delegations per topic. The entry API would hold the map borrow
         // across the `.await` below, so check-then-insert is used instead;
         // silence the resulting lint rather than restructure the await.
@@ -130,7 +145,10 @@ async fn list_summaries(
             .get(&topic_id)
             .expect("delegations cached above for this topic");
 
-        let result = core_tally(proposal_id, topic_id, &active_votes, active_dels, &eligible);
+        let active_votes = votes_by_proposal
+            .get(&proposal_id)
+            .map_or(&[][..], Vec::as_slice);
+        let result = core_tally(proposal_id, topic_id, active_votes, active_dels, &eligible);
         let counted_voters = result
             .trail
             .iter()
@@ -142,24 +160,13 @@ async fn list_summaries(
             })
             .count();
 
-        let thread = comments::list_thread(state.pool(), proposal_id)
-            .await
-            .map_err(ApiError::from)?;
-        let comment_count = i64::try_from(
-            thread
-                .iter()
-                .filter(|c| c.deleted_at.is_none() && c.hidden_at.is_none())
-                .count(),
-        )
-        .unwrap_or(i64::MAX);
-
         items.push(ProposalListItem {
             yes: result.yes,
             no: result.no,
             abstain: result.abstain,
             eligible_voters: eligible.len(),
             counted_voters,
-            comment_count,
+            comment_count: comment_counts.get(&proposal_id).copied().unwrap_or(0),
             proposal: ProposalResponse::from(p),
         });
     }
