@@ -37,6 +37,7 @@ export default {
       fontFamily: {
         sans: [
           '"Public Sans"',
+          '"Public Sans Fallback"',
           '-apple-system',
           'BlinkMacSystemFont',
           '"Segoe UI"',
@@ -45,7 +46,15 @@ export default {
           'Arial',
           'sans-serif'
         ],
-        serif: ['Spectral', 'Georgia', 'Cambria', '"Times New Roman"', 'serif'],
+        serif: [
+          'Spectral',
+          '"Spectral Fallback"',
+          '"Spectral Fallback Times"',
+          'Georgia',
+          'Cambria',
+          '"Times New Roman"',
+          'serif'
+        ],
         mono: [
           '"IBM Plex Mono"',
           'ui-monospace',

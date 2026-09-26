@@ -163,7 +163,8 @@
           ? 'border-ink-900 bg-ink-900 text-white'
           : 'border-line bg-white text-ink-600 hover:border-ink-400'}"
       >
-        {tab.label} <span class="opacity-60">{tab.count}</span>
+        {tab.label}
+        <span class={filter === tab.value ? 'text-[#b9b6aa]' : 'text-ink-400'}>{tab.count}</span>
       </button>
     {/each}
   </div>

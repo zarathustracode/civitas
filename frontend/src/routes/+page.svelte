@@ -236,7 +236,7 @@
 
 <!-- HOW IT WORKS -->
 <section class="mx-auto max-w-civic px-5 py-20 sm:px-10">
-  <div class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">How it works</div>
+  <h2 class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">How it works</h2>
   <div class="grid gap-9 md:grid-cols-3">
     <div>
       <div class="mb-4 font-mono text-[13px] text-accent-600">01</div>
@@ -289,7 +289,7 @@
 
     <!-- CHAIN (illustrative) -->
     <div class="flex min-w-0 items-start" aria-hidden="true">
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(125,151,255,0.5)] bg-[rgba(125,151,255,0.14)] font-serif text-[18px] font-semibold text-[#cdd6ff]"
         >
@@ -310,7 +310,7 @@
           style="background:linear-gradient(90deg,transparent,var(--glow),transparent); filter:blur(.5px); animation:flow 2.2s linear infinite .9s;"
         ></div>
       </div>
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/5 font-serif text-[18px] font-semibold"
         >
@@ -331,7 +331,7 @@
           style="background:linear-gradient(90deg,transparent,var(--glow),transparent); filter:blur(.5px); animation:flow 2.2s linear infinite 2s;"
         ></div>
       </div>
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-[1.5px] border-affirm-600 bg-[rgba(58,107,78,0.2)] font-serif text-[18px] font-semibold text-[#bfe0c9]"
           style="animation:ringPulse 3s ease-in-out infinite;"
@@ -340,7 +340,7 @@
         </div>
         <div class="mt-[13px] text-[14px] font-semibold">Dr. Osei Boateng</div>
         <div
-          class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-affirm-600 bg-[rgba(58,107,78,0.22)] px-[11px] py-[5px] font-mono text-[10px] uppercase tracking-[0.1em] text-[#bfe0c9]"
+          class="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-affirm-600 bg-[rgba(58,107,78,0.22)] px-[11px] py-[5px] font-mono text-[10px] uppercase tracking-[0.1em] text-[#bfe0c9]"
         >
           ● Voted Yes
         </div>
@@ -351,9 +351,9 @@
 
 <!-- PRINCIPLES -->
 <section class="mx-auto max-w-civic px-5 py-20 sm:px-10">
-  <div class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
+  <h2 class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
     What we hold to
-  </div>
+  </h2>
   <div
     class="grid grid-cols-1 gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-2"
   >
