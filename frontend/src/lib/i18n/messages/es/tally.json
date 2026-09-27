@@ -1,0 +1,13 @@
+{
+  "live_heading": "Recuento en directo",
+  "counting": "Contando",
+  "no_votes_yet": "Aún no se ha contado ningún voto.",
+  "eligible_count": "{counted} / {eligible} con derecho a voto",
+  "turnout": "{percent} de participación",
+  "final_result": "Resultado final",
+  "no_verdict": "Sin veredicto: no se contó ningún voto",
+  "tie": "Empate: {choices}",
+  "verdict": "{choice} ({percent})",
+  "counted_summary": "Se contaron los votos de {counted} de {eligible} personas con derecho a voto.",
+  "counted_summary_closed": "Se contaron los votos de {counted} de {eligible} personas con derecho a voto · cerrada el {date}."
+}

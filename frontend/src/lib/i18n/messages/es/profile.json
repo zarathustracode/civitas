@@ -1,0 +1,17 @@
+{
+  "title": "Perfil",
+  "eyebrow": "Cuenta",
+  "heading": "Tu perfil",
+  "unverified_title": "Correo sin verificar",
+  "unverified_body": "Puedes navegar y leer, pero para votar y publicar tienes que verificar tu correo.",
+  "verify_now": "Verificar ahora →",
+  "display_name": "Nombre visible",
+  "email": "Correo electrónico",
+  "email_verified": "verificado",
+  "email_pending": "pendiente",
+  "user_id": "ID de cuenta",
+  "member_since": "Miembro desde",
+  "operator_note": "Operas esta instalación.",
+  "operator_link": "Abrir el panel de operación →",
+  "log_out": "Salir"
+}

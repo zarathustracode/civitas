@@ -1,0 +1,11 @@
+{
+  "heading": "Oddaj głos",
+  "cannot_vote": "Nie możesz teraz głosować nad tą propozycją.",
+  "direct_vote_hint": "Głos bezpośredni zastępuje twoją delegację. Możesz go zmienić do końca głosowania.",
+  "confirm.yes": "Twój głos: <strong>{choice}</strong>. Popierasz tę propozycję.",
+  "confirm.no": "Twój głos: <strong>{choice}</strong>. Sprzeciwiasz się tej propozycji.",
+  "confirm.abstain": "Twój głos: <strong>{choice}</strong>. Zaznaczasz obecność, nie wskazując żadnej opcji.",
+  "confirm_vote": "Potwierdź głos",
+  "confirming": "Potwierdzanie…",
+  "cancel": "Anuluj"
+}

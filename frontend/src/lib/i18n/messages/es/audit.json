@@ -1,0 +1,15 @@
+{
+  "title": "Historial de auditoría · {count}",
+  "empty": "Aún no hay eventos registrados en esta propuesta.",
+  "action.proposal_created": "Creación de la propuesta",
+  "action.proposal_status_changed": "Cambio de estado",
+  "status.draft": "borrador",
+  "status.deliberation": "deliberación",
+  "status.voting": "votación",
+  "status.closed": "cerrada",
+  "transition": "{from} → {to}",
+  "transition_auto": "automático: {from} → {to}",
+  "by": "por {name}",
+  "by_system": "por el sistema",
+  "by_unknown": "autoría desconocida"
+}

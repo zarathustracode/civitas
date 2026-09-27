@@ -1,0 +1,14 @@
+{
+  "page_title": "About",
+  "eyebrow": "About",
+  "title": "About Civitas",
+  "intro": "Civitas is an open-source platform for direct democracy with optional per-topic delegation. The first version is intentionally minimal: a small, working tool that demonstrates the mechanism end-to-end. Larger ambitions — cryptographic verification, national e-ID integration, candidate commitment systems — are documented in the <link>roadmap</link> but deliberately deferred.",
+  "governance_title": "Governance",
+  "governance_body": "Civitas is currently founder-controlled, transitioning in four phases to govern itself on its own platform. Phase 1 — founder makes decisions, contributors propose changes. Phase 2 — operational decisions migrate onto the platform. Phase 3 — architectural decisions migrate. Phase 4 — the founder's procedural authority ends.",
+  "governance_plan": "The full plan and the founder's commitments are in <link>GOVERNANCE.md</link>.",
+  "source_title": "Source",
+  "source_license": "Civitas is licensed under <link>AGPL-3.0</link> so any networked deployment of a modified version must publish its source. This is the civic commons made explicit in the license.",
+  "source_repo": "Source: <link>github.com/zarathustracode/civitas</link>",
+  "issues_title": "Reporting issues",
+  "issues_body": "Bugs and proposals: open an issue on the GitHub repository. Security vulnerabilities: see <link>SECURITY.md</link> — do not file public issues for security problems."
+}

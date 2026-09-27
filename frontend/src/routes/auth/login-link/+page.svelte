@@ -4,38 +4,39 @@
   import TextField from '$lib/components/TextField.svelte';
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
+  import { getI18n } from '$lib/i18n';
   import type { ActionData } from './$types';
 
   let { form }: { form: ActionData } = $props();
+  const i18n = getI18n();
   let submitting = $state(false);
 
   const errorMessage = $derived(
-    form?.code ? friendlyMessage(new ApiError(form.code, form.code, 0)) : null
+    form?.code ? friendlyMessage(new ApiError(form.code, form.code, 0), i18n) : null
   );
 </script>
 
 <svelte:head>
-  <title>Sign in by email — Civitas</title>
+  <title>{i18n.t('auth.login_link.page_title')} — Civitas</title>
 </svelte:head>
 
 <section class="mx-auto w-full max-w-md px-5 py-16 sm:px-6">
   <div class="mb-3 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">Civitas</div>
   <h1 class="font-serif text-[34px] font-semibold leading-[1.1] tracking-[-0.01em]">
-    Sign in without a password
+    {i18n.t('auth.login_link.heading')}
   </h1>
   <p class="mt-3 font-serif text-[17px] leading-[1.5] text-ink-600">
-    We'll email you a link that signs you in once. It's valid for 15 minutes, and only works for
-    accounts whose email is already verified.
+    {i18n.t('auth.login_link.intro')}
   </p>
 
   <div class="mt-7 space-y-4">
     {#if form?.sent}
-      <Banner tone="success" title="Check your email">
-        If a verified account exists for that address, a sign-in link is on its way.
+      <Banner tone="success" title={i18n.t('auth.login_link.sent_title')}>
+        {i18n.t('auth.login_link.sent_body')}
       </Banner>
     {/if}
     {#if errorMessage}
-      <Banner tone="error" title="Request failed">{errorMessage}</Banner>
+      <Banner tone="error" title={i18n.t('auth.login_link.error_title')}>{errorMessage}</Banner>
     {/if}
 
     <form
@@ -51,16 +52,16 @@
     >
       <TextField
         name="email"
-        label="Email"
+        label={i18n.t('auth.login_link.email_label')}
         type="email"
         required
         autocomplete="email"
         value={form?.email ?? ''}
       />
       <div class="flex flex-wrap items-center justify-between gap-4">
-        <Button type="submit" loading={submitting}>Email me a link</Button>
+        <Button type="submit" loading={submitting}>{i18n.t('auth.login_link.submit')}</Button>
         <a href="/auth/login" class="text-sm text-accent-600 hover:underline"
-          >Use my password instead</a
+          >{i18n.t('auth.login_link.use_password')}</a
         >
       </div>
     </form>

@@ -1,0 +1,41 @@
+{
+  "page_title": "Deliberación — {title}",
+  "breadcrumb_proposals": "Propuestas",
+  "heading": "Deliberación",
+  "count.support": {
+    "one": "{count} a favor",
+    "other": "{count} a favor"
+  },
+  "count.oppose": {
+    "one": "{count} en contra",
+    "other": "{count} en contra"
+  },
+  "count.neutral": {
+    "one": "{count} neutral",
+    "other": "{count} neutrales"
+  },
+  "count.question": {
+    "one": "{count} pregunta",
+    "other": "{count} preguntas"
+  },
+  "posted_title": "Comentario publicado",
+  "posted_body": "Tu comentario ya está en el hilo.",
+  "post_failed": "No se pudo publicar",
+  "form_heading": "Participa en la deliberación",
+  "stance_legend": "Postura",
+  "stance.support": "A favor",
+  "stance.oppose": "En contra",
+  "stance.neutral": "Neutral",
+  "stance.question": "Pregunta",
+  "comment_label": "Tu comentario",
+  "post_comment": "Publicar comentario",
+  "log_in_prompt": "<link>Entra</link> para participar en la deliberación.",
+  "closed": "Esta propuesta está cerrada; el hilo ya es de solo lectura.",
+  "not_open": "La deliberación sobre esta propuesta aún no ha empezado.",
+  "verify_email": "Verifica tu correo electrónico antes de publicar.",
+  "no_comments": "Aún no hay comentarios.",
+  "edited": "(editado)",
+  "deleted": "[eliminado por quien lo escribió]",
+  "hidden": "[ocultado por moderación: {reason}]",
+  "hidden_no_reason": "[ocultado por moderación sin indicar el motivo]"
+}

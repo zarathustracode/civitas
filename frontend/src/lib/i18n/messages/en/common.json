@@ -1,0 +1,12 @@
+{
+  "status.draft": "Draft",
+  "status.deliberation": "In deliberation",
+  "status.voting": "Voting open",
+  "status.closed": "Closed",
+  "choice.yes": "Yes",
+  "choice.no": "No",
+  "choice.abstain": "Abstain",
+  "choice_sub.yes": "affirm",
+  "choice_sub.no": "oppose",
+  "choice_sub.abstain": "present"
+}

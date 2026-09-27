@@ -1,6 +1,7 @@
 <script lang="ts">
   import { searchUsers } from '$lib/api/users';
   import type { NamedUser } from '$lib/types/domain';
+  import { getI18n } from '$lib/i18n';
 
   let {
     name,
@@ -13,6 +14,8 @@
     selectedId?: string;
     hint?: string;
   } = $props();
+
+  const i18n = getI18n();
 
   let query = $state('');
   let results = $state<NamedUser[]>([]);
@@ -79,7 +82,7 @@
       class={inputClass}
       value={query}
       autocomplete="off"
-      placeholder="Search by name or email…"
+      placeholder={i18n.t('delegations.search.placeholder')}
       oninput={(e) => onInput((e.target as HTMLInputElement).value)}
     />
     <input type="hidden" {name} value={selectedId} />
@@ -89,7 +92,7 @@
         class="absolute right-2 top-1/2 -translate-y-1/2 rounded px-2 py-0.5 text-xs text-ink-600 hover:bg-ink-100"
         onclick={clear}
       >
-        Clear
+        {i18n.t('delegations.search.clear')}
       </button>
     {/if}
   </div>
@@ -118,6 +121,6 @@
       {/each}
     </ul>
   {:else if !chosen && query.trim().length >= 2 && !loading}
-    <p class="text-xs text-ink-600">No matches.</p>
+    <p class="text-xs text-ink-600">{i18n.t('delegations.search.no_matches')}</p>
   {/if}
 </div>

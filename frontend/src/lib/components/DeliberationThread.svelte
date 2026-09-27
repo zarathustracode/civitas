@@ -1,7 +1,10 @@
 <script lang="ts">
   import type { Comment, Stance } from '$lib/types/domain';
+  import { getI18n } from '$lib/i18n';
 
   let { comments }: { comments: Comment[] } = $props();
+
+  const i18n = getI18n();
 
   type Node = Comment & { children: Node[] };
 
@@ -23,12 +26,6 @@
     return roots;
   });
 
-  const stanceLabel: Record<Stance, string> = {
-    support: 'Support',
-    oppose: 'Oppose',
-    neutral: 'Neutral',
-    question: 'Question'
-  };
   const stanceMeta: Record<Stance, { text: string; bg: string }> = {
     support: { text: 'text-affirm-600', bg: 'bg-affirm-600' },
     oppose: { text: 'text-oppose-600', bg: 'bg-oppose-600' },
@@ -36,13 +33,25 @@
     question: { text: 'text-accent-600', bg: 'bg-accent-600' }
   };
 
+  // The runtime's default date-and-time format, pinned to the page's locale.
   function fmtDate(s: string): string {
-    return new Date(s).toLocaleString();
+    return i18n.date(s, {
+      year: 'numeric',
+      month: 'numeric',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: 'numeric',
+      second: 'numeric'
+    });
   }
 
   function visibleBody(c: Comment): string {
-    if (c.deleted_at) return '[deleted by author]';
-    if (c.hidden_at) return `[hidden by moderator: ${c.hidden_reason ?? 'no reason given'}]`;
+    if (c.deleted_at) return i18n.t('deliberation.deleted');
+    if (c.hidden_at) {
+      return c.hidden_reason
+        ? i18n.t('deliberation.hidden', { reason: c.hidden_reason })
+        : i18n.t('deliberation.hidden_no_reason');
+    }
     return c.body;
   }
 </script>
@@ -72,11 +81,13 @@
           class="inline-flex rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.1em] {stanceMeta[
             node.stance
           ].text}"
-          style="background:rgba(0,0,0,0.04);">{stanceLabel[node.stance]}</span
+          style="background:rgba(0,0,0,0.04);">{i18n.t(`deliberation.stance.${node.stance}`)}</span
         >
         <span class="ml-auto font-mono text-[11px] text-ink-400">{fmtDate(node.created_at)}</span>
         {#if node.edited_at}
-          <span class="font-mono text-[11px] italic text-ink-400">(edited)</span>
+          <span class="font-mono text-[11px] italic text-ink-400"
+            >{i18n.t('deliberation.edited')}</span
+          >
         {/if}
       </header>
       <p class="whitespace-pre-line font-serif text-[16px] leading-[1.55] text-ink-900">

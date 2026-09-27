@@ -7,7 +7,7 @@ export const load: PageServerLoad = async ({ locals, fetch, request, url }) => {
     throw redirect(303, '/auth/login');
   }
   if (!locals.currentUser.is_operator) {
-    throw error(403, 'The operator dashboard is limited to this deployment’s operators.');
+    throw error(403, locals.i18n.t('errors.page.operator_only'));
   }
 
   const before = url.searchParams.get('before');

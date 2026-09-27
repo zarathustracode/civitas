@@ -1,0 +1,11 @@
+{
+  "heading": "Emite tu voto",
+  "cannot_vote": "Ahora mismo no puedes votar esta propuesta.",
+  "direct_vote_hint": "Un voto directo sustituye a tu delegación. Puedes cambiarlo hasta que cierre la votación.",
+  "confirm.yes": "Tu voto: <strong>{choice}</strong>. Apoyas esta propuesta.",
+  "confirm.no": "Tu voto: <strong>{choice}</strong>. Te opones a esta propuesta.",
+  "confirm.abstain": "Tu voto: <strong>{choice}</strong>. Estás presente, sin expresar ninguna preferencia.",
+  "confirm_vote": "Confirmar voto",
+  "confirming": "Confirmando…",
+  "cancel": "Cancelar"
+}

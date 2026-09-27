@@ -1,0 +1,16 @@
+{
+  "title": "Topics",
+  "eyebrow": "The commons",
+  "intro": "Topics are the unit of delegation. You can delegate your vote on different topics to different people you trust.",
+  "empty": "No topics yet.",
+  "empty_hint": "Verified accounts can create one when proposals call for it.",
+  "proposals_heading": "Proposals",
+  "no_proposals": "No proposals on this topic yet.",
+  "stats.heading": "Topic activity",
+  "stats.proposals": "Proposals",
+  "stats.breakdown": "{voting} voting · {deliberation} in deliberation · {closed} closed",
+  "stats.active_delegations": "Active delegations",
+  "stats.routed": "votes routed via delegation on this topic",
+  "stats.top_delegates": "Top delegates",
+  "stats.no_delegates": "Nobody is delegating here yet."
+}

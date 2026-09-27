@@ -1,0 +1,17 @@
+{
+  "title": "Profile",
+  "eyebrow": "Account",
+  "heading": "Your profile",
+  "unverified_title": "Email not verified",
+  "unverified_body": "You can browse and read, but voting and posting require email verification.",
+  "verify_now": "Verify now →",
+  "display_name": "Display name",
+  "email": "Email",
+  "email_verified": "verified",
+  "email_pending": "pending",
+  "user_id": "User ID",
+  "member_since": "Member since",
+  "operator_note": "You operate this deployment.",
+  "operator_link": "Open the operator dashboard →",
+  "log_out": "Log out"
+}

@@ -1,0 +1,18 @@
+{
+  "demo_label": "Informacja o wersji demonstracyjnej",
+  "demo_notice": "Wersja demonstracyjna · dane są przykładowe — głosy, delegacje i konta w tym serwisie nie są wiążące.",
+  "home_label": "Civitas — strona główna",
+  "nav_primary": "Główna",
+  "nav_secondary": "Dodatkowa",
+  "nav_proposals": "Propozycje",
+  "nav_delegations": "Delegacje",
+  "nav_operator": "Operator",
+  "profile_label": "Twój profil — {name}",
+  "sign_in": "Zaloguj się",
+  "tagline": "otwarta infrastruktura obywatelska",
+  "about": "O projekcie",
+  "topics": "Tematy",
+  "source": "Kod źródłowy",
+  "language": "Język",
+  "meta_description": "Civitas — otwarta platforma demokracji bezpośredniej z opcjonalną delegacją głosu."
+}

@@ -1,17 +1,25 @@
-import { fail, redirect } from '@sveltejs/kit';
+import { error, fail, redirect } from '@sveltejs/kit';
 import type { Actions, PageServerLoad } from './$types';
 import { getProposal } from '$lib/api/proposals';
 import { listComments } from '$lib/api/comments';
+import { ApiError } from '$lib/api/errors';
 import type { Stance } from '$lib/types/domain';
 
 const VALID_STANCES: Stance[] = ['support', 'oppose', 'neutral', 'question'];
 
-export const load: PageServerLoad = async ({ params, fetch, request }) => {
-  const [proposal, comments] = await Promise.all([
-    getProposal(params.id, fetch, request.headers),
-    listComments(params.id, fetch, request.headers)
-  ]);
-  return { proposal, comments };
+export const load: PageServerLoad = async ({ params, fetch, request, locals }) => {
+  try {
+    const [proposal, comments] = await Promise.all([
+      getProposal(params.id, fetch, request.headers),
+      listComments(params.id, fetch, request.headers)
+    ]);
+    return { proposal, comments };
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) {
+      throw error(404, locals.i18n.t('errors.page.proposal_not_found'));
+    }
+    throw e;
+  }
 };
 
 export const actions: Actions = {

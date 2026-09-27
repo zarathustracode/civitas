@@ -1,0 +1,14 @@
+{
+  "page_title": "O projekcie",
+  "eyebrow": "O projekcie",
+  "title": "O projekcie Civitas",
+  "intro": "Civitas to otwartoźródłowa platforma demokracji bezpośredniej z opcjonalną delegacją według tematów. Pierwsza wersja jest celowo minimalna: to małe, działające narzędzie, które pokazuje cały mechanizm od początku do końca. Większe plany — weryfikacja kryptograficzna, integracja z krajowym e-dowodem, systemy zobowiązań wyborczych — są opisane w <link>planie rozwoju</link>, ale świadomie odłożone na później.",
+  "governance_title": "Zarządzanie",
+  "governance_body": "Obecnie Civitas kontroluje założyciel, a w czterech fazach projekt przejdzie do samodzielnego zarządzania na własnej platformie. Faza 1 — decyzje podejmuje założyciel, a osoby współtworzące projekt proponują zmiany. Faza 2 — decyzje operacyjne przechodzą na platformę. Faza 3 — przechodzą na nią decyzje architektoniczne. Faza 4 — kończy się proceduralna władza założyciela.",
+  "governance_plan": "Pełny plan i zobowiązania założyciela znajdziesz w pliku <link>GOVERNANCE.md</link>.",
+  "source_title": "Kod źródłowy",
+  "source_license": "Kod Civitas jest udostępniony na licencji <link>AGPL-3.0</link>, więc kod źródłowy każdej zmodyfikowanej wersji udostępnianej przez sieć musi zostać opublikowany. To obywatelskie dobro wspólne zapisane wprost w licencji.",
+  "source_repo": "Kod źródłowy: <link>github.com/zarathustracode/civitas</link>",
+  "issues_title": "Zgłaszanie problemów",
+  "issues_body": "Błędy i propozycje: utwórz zgłoszenie (issue) w repozytorium na GitHubie. Luki bezpieczeństwa: zobacz <link>SECURITY.md</link> — nie zgłaszaj publicznie problemów z bezpieczeństwem."
+}

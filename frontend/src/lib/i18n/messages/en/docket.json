@@ -1,0 +1,31 @@
+{
+  "title": "Proposals",
+  "eyebrow": "The docket",
+  "intro": "Every question before the citizenry, grouped by topic. Read the body, follow the deliberation, then vote directly — or let your delegation carry your weight.",
+  "filter.all": "All",
+  "filter.voting": "Voting",
+  "filter.deliberation": "Deliberation",
+  "filter.closed": "Closed",
+  "filter.draft": "Draft",
+  "empty": "No proposals match this filter.",
+  "topic_fallback": "Topic",
+  "comment_count": {
+    "one": "{count} comment",
+    "other": "{count} comments"
+  },
+  "comments_not_open": "Not yet open for comment",
+  "yes_share": "{percent} yes",
+  "voting_open": "voting open",
+  "closing": "closing",
+  "days_left": {
+    "one": "{count}d left",
+    "other": "{count}d left"
+  },
+  "hours_left": {
+    "one": "{count}h left",
+    "other": "{count}h left"
+  },
+  "no_votes": "no votes counted",
+  "passed": "passed",
+  "failed": "failed"
+}

@@ -20,7 +20,7 @@ export const load: PageServerLoad = async ({ params, fetch, request, locals }) =
     return { proposal, tally, comments, myVotes, audit };
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) {
-      throw error(404, 'Proposal not found');
+      throw error(404, locals.i18n.t('errors.page.proposal_not_found'));
     }
     throw e;
   }

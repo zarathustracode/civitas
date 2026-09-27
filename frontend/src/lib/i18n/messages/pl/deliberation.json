@@ -1,0 +1,49 @@
+{
+  "page_title": "Debata — {title}",
+  "breadcrumb_proposals": "Propozycje",
+  "heading": "Debata",
+  "count.support": {
+    "one": "poparcie: {count}",
+    "few": "poparcie: {count}",
+    "many": "poparcie: {count}",
+    "other": "poparcie: {count}"
+  },
+  "count.oppose": {
+    "one": "sprzeciw: {count}",
+    "few": "sprzeciw: {count}",
+    "many": "sprzeciw: {count}",
+    "other": "sprzeciw: {count}"
+  },
+  "count.neutral": {
+    "one": "neutralnie: {count}",
+    "few": "neutralnie: {count}",
+    "many": "neutralnie: {count}",
+    "other": "neutralnie: {count}"
+  },
+  "count.question": {
+    "one": "pytania: {count}",
+    "few": "pytania: {count}",
+    "many": "pytania: {count}",
+    "other": "pytania: {count}"
+  },
+  "posted_title": "Komentarz dodany",
+  "posted_body": "Twój komentarz jest już w wątku.",
+  "post_failed": "Nie udało się dodać komentarza",
+  "form_heading": "Dołącz do debaty",
+  "stance_legend": "Stanowisko",
+  "stance.support": "Poparcie",
+  "stance.oppose": "Sprzeciw",
+  "stance.neutral": "Neutralnie",
+  "stance.question": "Pytanie",
+  "comment_label": "Twój komentarz",
+  "post_comment": "Dodaj komentarz",
+  "log_in_prompt": "<link>Zaloguj się</link>, aby wziąć udział w debacie.",
+  "closed": "Ta propozycja jest zamknięta; wątek jest już tylko do odczytu.",
+  "not_open": "Debata nad tą propozycją jeszcze się nie rozpoczęła.",
+  "verify_email": "Zanim dodasz komentarz, potwierdź adres e-mail.",
+  "no_comments": "Nie ma jeszcze komentarzy.",
+  "edited": "(edytowano)",
+  "deleted": "[usunięty przez osobę, która go napisała]",
+  "hidden": "[ukryty przez moderację: {reason}]",
+  "hidden_no_reason": "[ukryty przez moderację bez podania powodu]"
+}

@@ -1,6 +1,6 @@
 # End-to-end tests
 
-Playwright drives a real Chromium against the SvelteKit server. Three suites:
+Playwright drives a real Chromium against the SvelteKit server. Four suites:
 
 - **`smoke.spec.ts`** — public-page rendering. Does not need the API.
 - **`flow.spec.ts`** — touches the API (register, login, vote, delegate,
@@ -9,6 +9,9 @@ Playwright drives a real Chromium against the SvelteKit server. Three suites:
   A/AA. Any violation fails, with the rule and offending elements in the
   message. Pages behind a login, and proposal pages, need the API and the
   seed data and skip without them.
+- **`i18n.spec.ts`** — language selection: browser languages pick the
+  locale, the footer picker overrides it, and the Spanish and Polish pages
+  pass the same axe scan.
 
 ## Running locally
 
@@ -53,5 +56,5 @@ skip otherwise.
   mail itself is covered by the backend's integration tests.
 - Layout / pixel diffs.
 
-CI (`.github/workflows/e2e.yml`) runs all three suites against the
+CI (`.github/workflows/e2e.yml`) runs all four suites against the
 production frontend build and a seeded API, with the settings above.

@@ -1,18 +1,17 @@
 <script lang="ts">
   import type { Proposal, Tally, VoteChoice } from '$lib/types/domain';
+  import { getI18n } from '$lib/i18n';
 
   let { proposal, tally }: { proposal: Proposal; tally: Tally } = $props();
+
+  const i18n = getI18n();
 
   type Outcome =
     | { kind: 'verdict'; leader: VoteChoice; leaderWeight: number; counted: number; pct: number }
     | { kind: 'no_quorum' }
     | { kind: 'tie'; leaders: VoteChoice[] };
 
-  const choiceLabel: Record<VoteChoice, string> = {
-    yes: 'Yes',
-    no: 'No',
-    abstain: 'Abstain'
-  };
+  const choiceLabel = (c: VoteChoice) => i18n.t(`common.choice.${c}`);
 
   const outcome = $derived.by<Outcome>(() => {
     const yes = parseFloat(tally.yes);
@@ -40,12 +39,11 @@
 
   const closedAt = $derived(
     proposal.voting_ends_at
-      ? new Date(proposal.voting_ends_at).toLocaleString(undefined, {
-          dateStyle: 'medium',
-          timeStyle: 'short'
-        })
+      ? i18n.date(proposal.voting_ends_at, { dateStyle: 'medium', timeStyle: 'short' })
       : null
   );
+
+  const counts = $derived({ counted: tally.counted_voters, eligible: tally.eligible_voters });
 
   const tone = $derived(outcome.kind === 'verdict' && outcome.leader === 'yes' ? 'win' : 'neutral');
 </script>
@@ -56,18 +54,22 @@
     ? 'border-affirm-500 bg-affirm-50'
     : 'border-ink-200 bg-ink-50'}"
 >
-  <p class="text-xs uppercase tracking-wide text-ink-600">Final result</p>
+  <p class="text-xs uppercase tracking-wide text-ink-600">{i18n.t('tally.final_result')}</p>
   <h2 id="results-heading" class="mt-1 text-2xl font-semibold">
     {#if outcome.kind === 'no_quorum'}
-      No verdict — no votes were counted
+      {i18n.t('tally.no_verdict')}
     {:else if outcome.kind === 'tie'}
-      Tie — {outcome.leaders.map((c) => choiceLabel[c]).join(' / ')}
+      {i18n.t('tally.tie', { choices: outcome.leaders.map(choiceLabel).join(' / ') })}
     {:else}
-      {choiceLabel[outcome.leader]} ({outcome.pct.toFixed(0)}%)
+      {i18n.t('tally.verdict', {
+        choice: choiceLabel(outcome.leader),
+        percent: i18n.number(Math.round(outcome.pct) / 100, { style: 'percent' })
+      })}
     {/if}
   </h2>
   <p class="text-ink-700 mt-1 text-sm">
-    {tally.counted_voters} of {tally.eligible_voters} eligible voters counted{#if closedAt}
-      · closed {closedAt}{/if}.
+    {closedAt
+      ? i18n.t('tally.counted_summary_closed', { ...counts, date: closedAt })
+      : i18n.t('tally.counted_summary', counts)}
   </p>
 </section>

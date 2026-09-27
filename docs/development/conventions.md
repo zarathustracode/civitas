@@ -86,6 +86,8 @@ The exception: `ts-export` feature on `civitas-types` to gate the `ts-rs` derive
 
 ## Internationalization
 
-English-only in v1. Use a Svelte i18n library (likely `svelte-i18n`) from the start so future translation work is a content task, not a refactor.
+The frontend ships in English, Spanish and Polish; see [`i18n.md`](./i18n.md) for how catalogs, plurals and locale selection work, and for the glossary. Every visible string goes through a catalog, so translation stays a content task, not a refactor.
 
 Do not concatenate translatable strings (`"Posted by " + name + " on " + date`). Use placeholders (`"Posted by {name} on {date}"`) so translators can re-order.
+
+We use a small context-based translator (`src/lib/i18n`) rather than `svelte-i18n`: the latter keeps the locale in a module-level store, which the server shares across concurrent requests.
