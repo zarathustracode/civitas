@@ -1,0 +1,37 @@
+{
+  "title": "Propozycje",
+  "eyebrow": "Porządek obrad",
+  "intro": "Wszystkie sprawy, którymi zajmuje się społeczność, pogrupowane według tematów. Przeczytaj treść, śledź debatę i zagłosuj bezpośrednio — albo pozwól, by wagę twojego głosu przeniosła delegacja.",
+  "filter.all": "Wszystkie",
+  "filter.voting": "Głosowanie",
+  "filter.deliberation": "Debata",
+  "filter.closed": "Zamknięte",
+  "filter.draft": "Szkice",
+  "empty": "Żadna propozycja nie pasuje do tego filtra.",
+  "topic_fallback": "Temat",
+  "comment_count": {
+    "one": "{count} komentarz",
+    "few": "{count} komentarze",
+    "many": "{count} komentarzy",
+    "other": "{count} komentarza"
+  },
+  "comments_not_open": "Jeszcze nie można komentować",
+  "yes_share": "{percent} za",
+  "voting_open": "głosowanie trwa",
+  "closing": "dobiega końca",
+  "days_left": {
+    "one": "został {count} dzień",
+    "few": "zostały {count} dni",
+    "many": "zostało {count} dni",
+    "other": "zostało {count} dnia"
+  },
+  "hours_left": {
+    "one": "została {count} godzina",
+    "few": "zostały {count} godziny",
+    "many": "zostało {count} godzin",
+    "other": "zostało {count} godziny"
+  },
+  "no_votes": "brak głosów",
+  "passed": "przyjęta",
+  "failed": "odrzucona"
+}

@@ -1,0 +1,16 @@
+{
+  "title": "Temas",
+  "eyebrow": "El procomún",
+  "intro": "Los temas son la unidad de delegación. Puedes delegar tu voto en personas de confianza distintas según el tema.",
+  "empty": "Todavía no hay temas.",
+  "empty_hint": "Las cuentas verificadas pueden crear uno cuando una propuesta lo necesite.",
+  "proposals_heading": "Propuestas",
+  "no_proposals": "Todavía no hay propuestas sobre este tema.",
+  "stats.heading": "Actividad del tema",
+  "stats.proposals": "Propuestas",
+  "stats.breakdown": "En votación: {voting} · En deliberación: {deliberation} · Cerradas: {closed}",
+  "stats.active_delegations": "Delegaciones activas",
+  "stats.routed": "votos que llegan por delegación en este tema",
+  "stats.top_delegates": "Personas delegadas principales",
+  "stats.no_delegates": "Todavía nadie delega en este tema."
+}

@@ -1,5 +1,5 @@
 import type { Tally, UUID, Vote, VoteChoice } from '$lib/types/domain';
-import { apiFetch } from './client';
+import { apiFetch, CLIENT_BASE_PATH } from './client';
 
 export async function castVote(
   proposalId: UUID,
@@ -21,6 +21,14 @@ export async function getTally(
     fetch: customFetch,
     forwardHeaders
   });
+}
+
+/**
+ * Browser-only `EventSource` URL for live tally updates: one `tally` event
+ * carrying a `TallyUpdate` as soon as it is known, then one per change.
+ */
+export function tallyStreamUrl(proposalId: UUID): string {
+  return `${CLIENT_BASE_PATH}/proposals/${encodeURIComponent(proposalId)}/tally/stream`;
 }
 
 /**

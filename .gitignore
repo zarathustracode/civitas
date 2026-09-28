@@ -59,6 +59,9 @@ playwright-report/
 playwright/.cache/
 .playwright-mcp/
 
+# --- Lighthouse CI ---
+.lighthouseci/
+
 # --- Docker ---
 .docker-data/
 

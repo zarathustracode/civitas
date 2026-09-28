@@ -33,6 +33,8 @@ async fn main() -> anyhow::Result<()> {
 
     let addr = config.http_listen_addr;
     let state = AppState::new(pool, config, outbound_mailer);
+    state.tally_hub().start(state.pool().clone());
+    tracing::info!("live tally listener started");
     let app = router(state);
 
     let listener = tokio::net::TcpListener::bind(addr).await?;

@@ -24,6 +24,12 @@ export interface User {
   created_at: IsoTimestamp;
 }
 
+/** `GET /auth/me`: the signed-in user plus what the UI may offer them. */
+export interface CurrentUser extends User {
+  /** Listed in the deployment's OPERATOR_EMAILS. */
+  is_operator: boolean;
+}
+
 export interface Topic {
   id: UUID;
   slug: string;
@@ -157,6 +163,53 @@ export type UserResponse = User;
 export type TopicResponse = Topic;
 export type ProposalResponse = Proposal;
 export type VoteResponse = Vote;
+/** One `tally` event from `GET /proposals/:id/tally/stream`: the public
+ * aggregate without the per-viewer trail. */
+export interface TallyUpdate {
+  proposal_id: UUID;
+  status: ProposalStatus;
+  yes: DecimalString;
+  no: DecimalString;
+  abstain: DecimalString;
+  eligible_voters: number;
+  counted_voters: number;
+}
+
 export type TallyResponse = Tally;
 export type DelegationResponse = Delegation;
 export type CommentResponse = Comment;
+
+// ── operator dashboard ──────────────────────────────────────────────────────
+
+export interface OperatorOverview {
+  users: {
+    total: number;
+    verified: number;
+    unverified: number;
+    deleted: number;
+    registered_last_7_days: number;
+  };
+  proposals: Record<ProposalStatus, number>;
+  active_delegations: number;
+  active_sessions: number;
+  /** Proposals in voting, closing soonest first. */
+  voting: {
+    id: UUID;
+    title: string;
+    voting_ends_at: IsoTimestamp | null;
+    counted_voters: number;
+    eligible_voters: number;
+  }[];
+  generated_at: IsoTimestamp;
+}
+
+/** One row of the deployment-wide audit feed. Ballot choices are redacted. */
+export interface OperatorAuditEntry {
+  id: UUID;
+  actor_display_name: string | null;
+  action: string;
+  entity_type: string;
+  entity_id: UUID;
+  metadata: Record<string, unknown>;
+  created_at: IsoTimestamp;
+}

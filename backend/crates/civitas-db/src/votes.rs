@@ -13,6 +13,7 @@ use civitas_core::VoteRecord;
 use civitas_types::{ProposalId, ProposalStatus, UserId, VoteChoice, VoteId};
 
 use crate::audit::{write_log, Action};
+use crate::tally_events::{self, TallyScope};
 use crate::{DbError, DbResult};
 
 /// Storage shape for a single vote-cast event. Includes audit fields not
@@ -93,6 +94,7 @@ pub async fn record(
         Some(&metadata),
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::Proposal(proposal_id)).await?;
 
     Ok(vote)
 }
@@ -116,6 +118,42 @@ pub async fn load_active_for_proposal<'c, E: PgExecutor<'c>>(
         order by voter_id, cast_at desc
         "#,
         proposal_id.into_inner(),
+    )
+    .fetch_all(conn)
+    .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|r| VoteRecord {
+            id: r.id,
+            proposal_id: r.proposal_id,
+            voter_id: r.voter_id,
+            choice: r.choice,
+            cast_at: r.cast_at,
+        })
+        .collect())
+}
+
+/// [`load_active_for_proposal`] for many proposals in one round trip, for
+/// list endpoints that tally every row.
+pub async fn load_active_for_proposals<'c, E: PgExecutor<'c>>(
+    conn: E,
+    proposal_ids: &[ProposalId],
+) -> DbResult<Vec<VoteRecord>> {
+    let ids: Vec<uuid::Uuid> = proposal_ids.iter().map(|id| id.into_inner()).collect();
+    let rows = sqlx::query!(
+        r#"
+        select distinct on (proposal_id, voter_id)
+            id          as "id: VoteId",
+            proposal_id as "proposal_id: ProposalId",
+            voter_id    as "voter_id: UserId",
+            choice      as "choice: VoteChoice",
+            cast_at
+        from votes
+        where proposal_id = any($1)
+        order by proposal_id, voter_id, cast_at desc
+        "#,
+        &ids,
     )
     .fetch_all(conn)
     .await?;

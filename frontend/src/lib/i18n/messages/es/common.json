@@ -1,0 +1,12 @@
+{
+  "status.draft": "Borrador",
+  "status.deliberation": "En deliberación",
+  "status.voting": "Votación abierta",
+  "status.closed": "Cerrada",
+  "choice.yes": "Sí",
+  "choice.no": "No",
+  "choice.abstain": "Abstención",
+  "choice_sub.yes": "a favor",
+  "choice_sub.no": "en contra",
+  "choice_sub.abstain": "presente"
+}

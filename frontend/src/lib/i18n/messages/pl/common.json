@@ -1,0 +1,12 @@
+{
+  "status.draft": "Szkic",
+  "status.deliberation": "Debata",
+  "status.voting": "Głosowanie trwa",
+  "status.closed": "Zamknięta",
+  "choice.yes": "Za",
+  "choice.no": "Przeciw",
+  "choice.abstain": "Wstrzymuję się",
+  "choice_sub.yes": "popieram",
+  "choice_sub.no": "sprzeciw",
+  "choice_sub.abstain": "obecność"
+}

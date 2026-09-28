@@ -2,8 +2,11 @@
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
   import type { ProposalStatus, ProposalListItem } from '$lib/types/domain';
+  import { getI18n } from '$lib/i18n';
 
   let { data }: { data: PageData } = $props();
+
+  const i18n = getI18n();
 
   type Filter = 'all' | ProposalStatus;
   let filter = $state<Filter>('all');
@@ -15,7 +18,8 @@
     return () => clearInterval(t);
   });
 
-  const topicName = (id: string) => data.topics.find((t) => t.id === id)?.name ?? 'Topic';
+  const topicName = (id: string) =>
+    data.topics.find((t) => t.id === id)?.name ?? i18n.t('docket.topic_fallback');
 
   // Filing number: rank by creation order (oldest = 1), stable across filters.
   const filingNumber = $derived.by(() => {
@@ -32,21 +36,21 @@
     return c;
   });
 
-  const statusMeta: Record<ProposalStatus, { label: string; text: string; bg: string }> = {
-    voting: { label: 'Voting open', text: 'text-accent-600', bg: 'bg-accent-600' },
-    deliberation: { label: 'In deliberation', text: 'text-ochre-600', bg: 'bg-ochre-600' },
-    closed: { label: 'Closed', text: 'text-ink-400', bg: 'bg-ink-400' },
-    draft: { label: 'Draft', text: 'text-ink-400', bg: 'bg-ink-400' }
+  const statusMeta: Record<ProposalStatus, { text: string; bg: string }> = {
+    voting: { text: 'text-accent-600', bg: 'bg-accent-600' },
+    deliberation: { text: 'text-ochre-600', bg: 'bg-ochre-600' },
+    closed: { text: 'text-ink-400', bg: 'bg-ink-400' },
+    draft: { text: 'text-ink-400', bg: 'bg-ink-400' }
   };
 
   function endsLabel(iso: string | null): string {
-    if (!iso) return 'voting open';
+    if (!iso) return i18n.t('docket.voting_open');
     const ms = new Date(iso).getTime() - (now || Date.now());
-    if (ms <= 0) return 'closing';
+    if (ms <= 0) return i18n.t('docket.closing');
     const days = Math.floor(ms / 86_400_000);
     const hours = Math.floor((ms % 86_400_000) / 3_600_000);
-    if (days > 0) return `${days}d left`;
-    return `${hours}h left`;
+    if (days > 0) return i18n.t('docket.days_left', { count: days });
+    return i18n.t('docket.hours_left', { count: hours });
   }
 
   interface Row {
@@ -61,7 +65,7 @@
     yesPct: number;
     noPct: number;
     absPct: number;
-    yesPctRounded: number;
+    yesLabel: string;
     rightMeta: string;
     hasChip: boolean;
     chipLabel: string;
@@ -83,31 +87,31 @@
         const isClosed = p.status === 'closed';
         const isDelib = p.status === 'deliberation';
         const passed = yes > no;
+        const comments = i18n.t('docket.comment_count', { count: p.comment_count });
         return {
           item: p,
           num: filingNumber.get(p.id) ?? 0,
-          statusLabel: meta.label,
+          statusLabel: i18n.t(`common.status.${p.status}`),
           statusText: meta.text,
           railBg: meta.bg,
           topic: topicName(p.topic_id),
-          commentsLabel:
-            p.comment_count > 0
-              ? `${p.comment_count.toLocaleString('en-US')} comment${p.comment_count === 1 ? '' : 's'}`
-              : 'Not yet open for comment',
+          commentsLabel: p.comment_count > 0 ? comments : i18n.t('docket.comments_not_open'),
           hasBar: isVoting || isClosed,
           yesPct: pct(yes),
           noPct: pct(no),
           absPct: pct(abstain),
-          yesPctRounded: Math.round(pct(yes)),
+          yesLabel: i18n.t('docket.yes_share', {
+            percent: i18n.number(Math.round(pct(yes)) / 100, { style: 'percent' })
+          }),
           rightMeta: isVoting
             ? endsLabel(p.voting_ends_at)
             : counted === 0
-              ? 'no votes counted'
+              ? i18n.t('docket.no_votes')
               : passed
-                ? 'passed'
-                : 'failed',
+                ? i18n.t('docket.passed')
+                : i18n.t('docket.failed'),
           hasChip: isDelib || p.status === 'draft',
-          chipLabel: isDelib ? `${p.comment_count.toLocaleString('en-US')} comments` : 'Draft',
+          chipLabel: isDelib ? comments : i18n.t('common.status.draft'),
           chipText: isDelib ? 'text-ochre-600' : 'text-ink-400',
           chipBorder: isDelib ? 'border-ochre-600' : 'border-ink-400'
         };
@@ -115,16 +119,20 @@
   });
 
   const tabs: { value: Filter; label: string; count: number }[] = $derived([
-    { value: 'all', label: 'All', count: counts.all },
-    { value: 'voting', label: 'Voting', count: counts.voting },
-    { value: 'deliberation', label: 'Deliberation', count: counts.deliberation },
-    { value: 'closed', label: 'Closed', count: counts.closed },
-    { value: 'draft', label: 'Draft', count: counts.draft }
+    { value: 'all', label: i18n.t('docket.filter.all'), count: counts.all },
+    { value: 'voting', label: i18n.t('docket.filter.voting'), count: counts.voting },
+    {
+      value: 'deliberation',
+      label: i18n.t('docket.filter.deliberation'),
+      count: counts.deliberation
+    },
+    { value: 'closed', label: i18n.t('docket.filter.closed'), count: counts.closed },
+    { value: 'draft', label: i18n.t('docket.filter.draft'), count: counts.draft }
   ]);
 </script>
 
 <svelte:head>
-  <title>Proposals — Civitas</title>
+  <title>{i18n.t('docket.title')} — Civitas</title>
 </svelte:head>
 
 <!-- HEADER -->
@@ -133,20 +141,19 @@
     class="mb-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400"
     style="animation:fadeUp .6s both;"
   >
-    The docket
+    {i18n.t('docket.eyebrow')}
   </div>
   <h1
     class="font-serif text-[clamp(40px,5.4vw,60px)] font-semibold leading-[1.04] tracking-[-0.015em]"
     style="animation:fadeUp .6s both .08s;"
   >
-    Proposals
+    {i18n.t('docket.title')}
   </h1>
   <p
     class="mt-[18px] max-w-[58ch] font-serif text-[20px] leading-[1.5] text-ink-600"
     style="animation:fadeUp .6s both .14s;"
   >
-    Every question before the citizenry, grouped by topic. Read the body, follow the deliberation,
-    then vote directly — or let your delegation carry your weight.
+    {i18n.t('docket.intro')}
   </p>
 </section>
 
@@ -163,7 +170,10 @@
           ? 'border-ink-900 bg-ink-900 text-white'
           : 'border-line bg-white text-ink-600 hover:border-ink-400'}"
       >
-        {tab.label} <span class="opacity-60">{tab.count}</span>
+        {tab.label}
+        <span class={filter === tab.value ? 'text-[#b9b6aa]' : 'text-ink-400'}
+          >{i18n.number(tab.count)}</span
+        >
       </button>
     {/each}
   </div>
@@ -175,7 +185,7 @@
     <p
       class="mt-8 rounded-md border border-dashed border-line px-7 py-7 font-serif text-[18px] text-ink-600"
     >
-      No proposals match this filter.
+      {i18n.t('docket.empty')}
     </p>
   {:else}
     {#each rows as row (row.item.id)}
@@ -221,7 +231,7 @@
               <div
                 class="mt-2 flex justify-between font-mono text-[11px] tabular-nums text-ink-600"
               >
-                <span class="text-affirm-600">{row.yesPctRounded}% yes</span>
+                <span class="text-affirm-600">{row.yesLabel}</span>
                 <span>{row.rightMeta}</span>
               </div>
             </div>

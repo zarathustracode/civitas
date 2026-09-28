@@ -5,12 +5,15 @@
   import Banner from '$lib/components/Banner.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
   import { initials } from '$lib/utils/text';
+  import { getI18n } from '$lib/i18n';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  const i18n = getI18n();
+
   const errorMessage = $derived(
     form && 'code' in form && form.code
-      ? friendlyMessage(new ApiError(form.code, form.code, 0))
+      ? friendlyMessage(new ApiError(form.code, form.code, 0), i18n)
       : null
   );
 
@@ -25,7 +28,7 @@
 </script>
 
 <svelte:head>
-  <title>Delegations — Civitas</title>
+  <title>{i18n.t('delegations.title')} — Civitas</title>
 </svelte:head>
 
 <!-- HEADER -->
@@ -34,21 +37,19 @@
     class="mb-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400"
     style="animation:fadeUp .6s both;"
   >
-    Your trust network
+    {i18n.t('delegations.eyebrow')}
   </div>
   <h1
     class="font-serif text-[clamp(40px,5.4vw,60px)] font-semibold leading-[1.04] tracking-[-0.015em]"
     style="animation:fadeUp .6s both .08s;"
   >
-    Delegations
+    {i18n.t('delegations.title')}
   </h1>
   <p
     class="mt-[18px] max-w-[60ch] font-serif text-[20px] leading-[1.5] text-ink-600"
     style="animation:fadeUp .6s both .14s;"
   >
-    For each topic you may delegate your vote to one person you trust. Delegation is transitive —
-    they may pass it onward — but a direct vote always overrides it, and you can revoke at any
-    moment.
+    {i18n.t('delegations.intro')}
   </p>
 
   <!-- STAT LEDGER -->
@@ -58,26 +59,26 @@
   >
     <div class="bg-card px-6 py-[22px]">
       <div class="font-mono text-[34px] font-medium tabular-nums tracking-[-0.02em]">
-        {data.mine.length}
+        {i18n.number(data.mine.length)}
       </div>
       <div class="mt-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
-        Topics delegated
+        {i18n.t('delegations.stat_delegated')}
       </div>
     </div>
     <div class="bg-card px-6 py-[22px]">
       <div class="font-mono text-[34px] font-medium tabular-nums tracking-[-0.02em]">
-        {Math.max(data.topics.length - data.mine.length, 0)}
+        {i18n.number(Math.max(data.topics.length - data.mine.length, 0))}
       </div>
       <div class="mt-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
-        Topics you vote directly
+        {i18n.t('delegations.stat_direct')}
       </div>
     </div>
     <div class="bg-card px-6 py-[22px]">
       <div class="font-mono text-[34px] font-medium tabular-nums tracking-[-0.02em]">
-        {data.topics.length}
+        {i18n.number(data.topics.length)}
       </div>
       <div class="mt-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
-        Topics in total
+        {i18n.t('delegations.stat_total')}
       </div>
     </div>
   </div>
@@ -85,7 +86,7 @@
 
 {#if errorMessage}
   <div class="mx-auto max-w-civic px-5 pb-2 sm:px-10">
-    <Banner tone="error" title="Action failed">{errorMessage}</Banner>
+    <Banner tone="error" title={i18n.t('delegations.action_failed')}>{errorMessage}</Banner>
   </div>
 {/if}
 
@@ -96,14 +97,14 @@
   <!-- ACTIVE DELEGATIONS -->
   <div class="min-w-0">
     <h2 class="mb-[18px] font-serif text-[24px] font-semibold tracking-[-0.01em]">
-      Active delegations
+      {i18n.t('delegations.active_heading')}
     </h2>
 
     {#if data.mine.length === 0}
       <div
         class="rounded border border-dashed border-line px-7 py-7 font-serif text-[18px] text-ink-600"
       >
-        You have no active delegations. Your vote is direct on every topic.
+        {i18n.t('delegations.empty')}
       </div>
     {:else}
       <div class="flex flex-col gap-3">
@@ -122,7 +123,7 @@
                   type="submit"
                   class="cursor-pointer rounded-full border border-line bg-transparent px-3 py-1.5 font-mono text-[10px] uppercase tracking-[0.08em] text-ink-600 transition-colors hover:border-oppose-600 hover:text-oppose-600"
                 >
-                  Revoke
+                  {i18n.t('delegations.revoke')}
                 </button>
               </form>
             </div>
@@ -132,7 +133,7 @@
               <span
                 class="flex h-[38px] w-[38px] flex-none items-center justify-center rounded-full border border-[rgba(43,58,140,0.4)] bg-[rgba(43,58,140,0.12)] font-serif text-[13px] font-semibold text-accent-600"
               >
-                You
+                {i18n.t('delegations.you')}
               </span>
               <div
                 class="mx-3 h-0.5 min-w-[24px] flex-1"
@@ -155,7 +156,7 @@
                   <div
                     class="mt-[3px] font-mono text-[10px] uppercase tracking-[0.06em] text-ink-400"
                   >
-                    carries your weight
+                    {i18n.t('delegations.carries_weight')}
                   </div>
                 </div>
               </div>
@@ -170,11 +171,13 @@
   <aside class="flex flex-col gap-[18px]">
     <!-- CREATE FORM -->
     <div class="rounded border border-line bg-card p-[22px]">
-      <h2 class="mb-4 font-serif text-[20px] font-semibold">Delegate on a new topic</h2>
+      <h2 class="mb-4 font-serif text-[20px] font-semibold">
+        {i18n.t('delegations.create_heading')}
+      </h2>
 
       {#if availableTopics.length === 0}
         <p class="font-serif text-[16px] text-ink-600">
-          You have delegated on every available topic. Revoke one to redirect it.
+          {i18n.t('delegations.all_delegated')}
         </p>
       {:else}
         <form
@@ -192,7 +195,8 @@
           }}
         >
           <label class="flex flex-col gap-1.5">
-            <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">Topic</span
+            <span class="font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400"
+              >{i18n.t('delegations.topic_label')}</span
             >
             <select
               name="topic_id"
@@ -200,7 +204,7 @@
               required
               class="appearance-none rounded-[3px] border border-line bg-white px-3.5 py-[11px] text-[15px] text-ink-900 focus:border-accent-500 focus:outline-2 focus:outline-offset-2 focus:outline-accent-500"
             >
-              <option value="">Select a topic…</option>
+              <option value="">{i18n.t('delegations.topic_placeholder')}</option>
               {#each availableTopics as t (t.id)}
                 <option value={t.id}>{t.name}</option>
               {/each}
@@ -209,9 +213,9 @@
 
           <UserSearchField
             name="delegate_id"
-            label="Delegate"
+            label={i18n.t('delegations.delegate_label')}
             bind:selectedId={delegateId}
-            hint="Search by name or email. The directory is restricted to verified citizens. Cycles are rejected at creation."
+            hint={i18n.t('delegations.delegate_hint')}
           />
 
           <button
@@ -222,7 +226,7 @@
               ? 'bg-accent-600 hover:bg-accent-700'
               : 'cursor-not-allowed bg-ink-400'}"
           >
-            {submitting ? 'Creating…' : 'Create delegation'}
+            {submitting ? i18n.t('delegations.creating') : i18n.t('delegations.create')}
           </button>
         </form>
       {/if}
@@ -231,15 +235,13 @@
     <!-- EXPLAINER -->
     <div class="rounded bg-band p-[22px] text-band-ink">
       <div class="mb-3.5 font-mono text-[10px] uppercase tracking-[0.16em] text-band-mute">
-        When others trust you
+        {i18n.t('delegations.trust_eyebrow')}
       </div>
       <p class="font-serif text-[17px] leading-[1.55] text-[#cfccc1]">
-        Weight delegated to you flows through your direct votes on those topics — your delegates'
-        choices follow yours.
+        {i18n.t('delegations.trust_body')}
       </p>
       <p class="mt-3.5 font-mono text-[11px] leading-[1.7] tracking-[0.04em] text-[#8f8c80]">
-        Vote thoughtfully on topics where others rely on you. Every delegation and every vote it
-        carries is recorded in the audit log.
+        {i18n.t('delegations.trust_note')}
       </p>
     </div>
   </aside>

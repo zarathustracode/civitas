@@ -1,0 +1,41 @@
+{
+  "page_title": "Deliberate — {title}",
+  "breadcrumb_proposals": "Proposals",
+  "heading": "Deliberation",
+  "count.support": {
+    "one": "{count} support",
+    "other": "{count} support"
+  },
+  "count.oppose": {
+    "one": "{count} oppose",
+    "other": "{count} oppose"
+  },
+  "count.neutral": {
+    "one": "{count} neutral",
+    "other": "{count} neutral"
+  },
+  "count.question": {
+    "one": "{count} question",
+    "other": "{count} questions"
+  },
+  "posted_title": "Comment posted",
+  "posted_body": "Your comment is in the thread.",
+  "post_failed": "Could not post",
+  "form_heading": "Add to the deliberation",
+  "stance_legend": "Stance",
+  "stance.support": "Support",
+  "stance.oppose": "Oppose",
+  "stance.neutral": "Neutral",
+  "stance.question": "Question",
+  "comment_label": "Your comment",
+  "post_comment": "Post comment",
+  "log_in_prompt": "<link>Log in</link> to participate in deliberation.",
+  "closed": "This proposal is closed; the thread is now read-only.",
+  "not_open": "Deliberation has not opened on this proposal yet.",
+  "verify_email": "Verify your email before posting.",
+  "no_comments": "No comments yet.",
+  "edited": "(edited)",
+  "deleted": "[deleted by author]",
+  "hidden": "[hidden by moderator: {reason}]",
+  "hidden_no_reason": "[hidden by moderator: no reason given]"
+}

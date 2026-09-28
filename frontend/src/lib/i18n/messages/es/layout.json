@@ -1,0 +1,18 @@
+{
+  "demo_label": "Aviso de demostración",
+  "demo_notice": "Demostración · los datos son de ejemplo: los votos, las delegaciones y las cuentas de este sitio no son vinculantes.",
+  "home_label": "Civitas — inicio",
+  "nav_primary": "Principal",
+  "nav_secondary": "Secundaria",
+  "nav_proposals": "Propuestas",
+  "nav_delegations": "Delegaciones",
+  "nav_operator": "Operación",
+  "profile_label": "Tu perfil — {name}",
+  "sign_in": "Entrar",
+  "tagline": "infraestructura cívica abierta",
+  "about": "Acerca de",
+  "topics": "Temas",
+  "source": "Código",
+  "language": "Idioma",
+  "meta_description": "Civitas — plataforma de código abierto para la democracia directa con delegación opcional."
+}

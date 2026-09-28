@@ -1,0 +1,15 @@
+{
+  "title": "Audit timeline · {count}",
+  "empty": "No recorded events on this proposal yet.",
+  "action.proposal_created": "Proposal created",
+  "action.proposal_status_changed": "Status changed",
+  "status.draft": "draft",
+  "status.deliberation": "deliberation",
+  "status.voting": "voting",
+  "status.closed": "closed",
+  "transition": "{from} → {to}",
+  "transition_auto": "auto: {from} → {to}",
+  "by": "by {name}",
+  "by_system": "by system",
+  "by_unknown": "by unknown"
+}

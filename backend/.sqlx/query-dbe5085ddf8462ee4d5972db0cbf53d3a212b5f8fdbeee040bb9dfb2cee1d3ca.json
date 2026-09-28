@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update login_link_tokens\n        set consumed_at = now()\n        where token_hash = $1 and consumed_at is null and expires_at > now()\n        returning user_id as \"user_id: UserId\"\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id: UserId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "dbe5085ddf8462ee4d5972db0cbf53d3a212b5f8fdbeee040bb9dfb2cee1d3ca"
+}

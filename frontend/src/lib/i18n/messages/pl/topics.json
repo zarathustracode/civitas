@@ -1,0 +1,16 @@
+{
+  "title": "Tematy",
+  "eyebrow": "Sprawy wspólne",
+  "intro": "Tematy są jednostką delegacji. W różnych tematach możesz delegować swój głos różnym zaufanym osobom.",
+  "empty": "Nie ma jeszcze tematów.",
+  "empty_hint": "Osoby z potwierdzonym kontem mogą dodać temat, gdy wymaga tego jakaś propozycja.",
+  "proposals_heading": "Propozycje",
+  "no_proposals": "W tym temacie nie ma jeszcze propozycji.",
+  "stats.heading": "Aktywność w temacie",
+  "stats.proposals": "Propozycje",
+  "stats.breakdown": "W głosowaniu: {voting} · W debacie: {deliberation} · Zamknięte: {closed}",
+  "stats.active_delegations": "Aktywne delegacje",
+  "stats.routed": "głosy przekazane w tym temacie przez delegację",
+  "stats.top_delegates": "Najpopularniejsze osoby delegowane",
+  "stats.no_delegates": "Nikt jeszcze nie deleguje w tym temacie."
+}

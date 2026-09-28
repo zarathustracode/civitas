@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        update login_link_tokens\n        set consumed_at = now()\n        where user_id = $1 and consumed_at is null\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f350a6189fcff8305852e10f97c06f17d5332d480bfac8557fab15e483b7eee9"
+}

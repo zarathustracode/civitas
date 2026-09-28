@@ -2,20 +2,26 @@
   import { onMount } from 'svelte';
   import { invalidateAll } from '$app/navigation';
   import type { PageData, ActionData } from './$types';
-  import type { VoteChoice, ProposalStatus, Stance } from '$lib/types/domain';
+  import type { VoteChoice, ProposalStatus, Stance, Tally, TallyUpdate } from '$lib/types/domain';
   import { initials } from '$lib/utils/text';
+  import { applyTallyUpdate } from '$lib/utils/tally';
+  import { tallyStreamUrl } from '$lib/api/votes';
   import Markdown from '$lib/components/Markdown.svelte';
   import TallyDisplay from '$lib/components/TallyDisplay.svelte';
   import VoteInterface from '$lib/components/VoteInterface.svelte';
   import AuditTimeline from '$lib/components/AuditTimeline.svelte';
   import Banner from '$lib/components/Banner.svelte';
+  import Rich from '$lib/components/Rich.svelte';
   import { friendlyMessage, ApiError } from '$lib/api/errors';
+  import { getI18n } from '$lib/i18n';
 
   let { data, form }: { data: PageData; form: ActionData } = $props();
 
+  const i18n = getI18n();
+
   const voteError = $derived(
     form && 'code' in form && form.code
-      ? friendlyMessage(new ApiError(form.code, form.code, 0))
+      ? friendlyMessage(new ApiError(form.code, form.code, 0), i18n)
       : null
   );
   const voteSuccess = $derived(form && 'voted' in form ? form.voted : null);
@@ -26,14 +32,14 @@
     return data.proposal.status === 'voting';
   });
   const cantVoteReason = $derived.by(() => {
-    if (!data.currentUser) return 'Sign in to vote on this proposal.';
-    if (!data.currentUser.email_verified) return 'Verify your email before voting.';
-    if (data.proposal.status === 'closed') return 'Voting has closed on this proposal.';
-    if (data.proposal.status !== 'voting') return 'This proposal is not in the voting phase.';
+    if (data.proposal.status === 'closed') return i18n.t('proposal.cant_vote.closed');
+    if (data.proposal.status !== 'voting') return i18n.t('proposal.cant_vote.not_voting');
+    if (!data.currentUser) return i18n.t('proposal.cant_vote.sign_in');
+    if (!data.currentUser.email_verified) return i18n.t('proposal.cant_vote.verify_email');
     return undefined;
   });
 
-  const choiceLabel: Record<VoteChoice, string> = { yes: 'Yes', no: 'No', abstain: 'Abstain' };
+  const choiceLabel = (choice: VoteChoice) => i18n.t(`common.choice.${choice}`);
 
   // Live countdown to close.
   let now = $state(0);
@@ -56,24 +62,51 @@
     return { days, h: pad(hrs), m: pad(mins), s: pad(secs) };
   });
 
-  const statusPill: Record<ProposalStatus, { label: string; color: string }> = {
-    voting: { label: 'Voting open', color: 'affirm' },
-    deliberation: { label: 'In deliberation', color: 'ochre' },
-    closed: { label: 'Closed', color: 'ink' },
-    draft: { label: 'Draft', color: 'ink' }
+  const statusPill: Record<ProposalStatus, { color: string }> = {
+    voting: { color: 'affirm' },
+    deliberation: { color: 'ochre' },
+    closed: { color: 'ink' },
+    draft: { color: 'ink' }
   };
-  const pill = $derived(statusPill[data.proposal.status]);
+  const pill = $derived({
+    ...statusPill[data.proposal.status],
+    label: i18n.t(`common.status.${data.proposal.status}`)
+  });
 
   function relTime(iso: string): string {
     const ms = Date.now() - new Date(iso).getTime();
     const mins = Math.floor(ms / 60_000);
-    if (mins < 60) return `${Math.max(mins, 1)}m ago`;
+    if (mins < 60) return i18n.t('proposal.ago.minutes', { count: Math.max(mins, 1) });
     const hrs = Math.floor(mins / 60);
-    if (hrs < 24) return `${hrs}h ago`;
-    return `${Math.floor(hrs / 24)}d ago`;
+    if (hrs < 24) return i18n.t('proposal.ago.hours', { count: hrs });
+    return i18n.t('proposal.ago.days', { count: Math.floor(hrs / 24) });
   }
 
-  const trail = $derived(data.tally.your_trail);
+  // Live tally: the loaded snapshot, overlaid with server-sent updates while
+  // voting is open. An update is keyed to the snapshot it arrived on, so a
+  // reload (e.g. after the viewer votes) falls back to the fresh snapshot.
+  let streamed = $state.raw<{ base: Tally; update: TallyUpdate } | null>(null);
+  const tally = $derived(
+    streamed && streamed.base === data.tally
+      ? applyTallyUpdate(data.tally, streamed.update)
+      : data.tally
+  );
+
+  const proposalId = $derived(data.proposal.id);
+  const isVoting = $derived(data.proposal.status === 'voting');
+  $effect(() => {
+    if (!isVoting) return;
+    const source = new EventSource(tallyStreamUrl(proposalId));
+    source.addEventListener('tally', (event) => {
+      const update = JSON.parse((event as MessageEvent<string>).data) as TallyUpdate;
+      streamed = { base: data.tally, update };
+      // Voting closed under us: reload so the outcome and results render.
+      if (update.status !== data.proposal.status) void invalidateAll();
+    });
+    return () => source.close();
+  });
+
+  const trail = $derived(tally.your_trail);
 
   // Delegation-chain nodes, when the viewer's weight flows through a chain.
   const chainNodes = $derived.by(() => {
@@ -92,35 +125,39 @@
       .filter((c) => c.parent_id === null && c.deleted_at === null && c.hidden_at === null)
       .slice(0, 3)
   );
-  const stanceMeta: Record<Stance, { label: string; text: string; bg: string }> = {
-    support: { label: 'Support', text: 'text-affirm-600', bg: 'bg-affirm-600' },
-    oppose: { label: 'Oppose', text: 'text-oppose-600', bg: 'bg-oppose-600' },
-    question: { label: 'Question', text: 'text-accent-600', bg: 'bg-accent-600' },
-    neutral: { label: 'Neutral', text: 'text-ink-600', bg: 'bg-ink-400' }
+  const stanceMeta: Record<Stance, { text: string; bg: string }> = {
+    support: { text: 'text-affirm-600', bg: 'bg-affirm-600' },
+    oppose: { text: 'text-oppose-600', bg: 'bg-oppose-600' },
+    question: { text: 'text-accent-600', bg: 'bg-accent-600' },
+    neutral: { text: 'text-ink-600', bg: 'bg-ink-400' }
   };
+  const knownStance = (stance: Stance): Stance => (stance in stanceMeta ? stance : 'neutral');
 
   const closedResult = $derived.by(() => {
     if (data.proposal.status !== 'closed') return null;
-    const yes = parseFloat(data.tally.yes);
-    const no = parseFloat(data.tally.no);
-    if (yes + no + parseFloat(data.tally.abstain) === 0) return 'No votes were counted.';
-    return yes > no ? 'Passed' : no > yes ? 'Failed' : 'Tied';
+    const yes = parseFloat(tally.yes);
+    const no = parseFloat(tally.no);
+    if (yes + no + parseFloat(tally.abstain) === 0) return i18n.t('proposal.outcome.none');
+    return yes > no
+      ? i18n.t('proposal.outcome.passed')
+      : no > yes
+        ? i18n.t('proposal.outcome.failed')
+        : i18n.t('proposal.outcome.tied');
   });
 
   const votingWindow = $derived.by(() => {
     const s = data.proposal.voting_starts_at;
     const e = data.proposal.voting_ends_at;
     if (!s || !e) return null;
-    const fmt = (iso: string) =>
-      new Date(iso).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
-    return `${fmt(s)} — ${fmt(e)}`;
+    return i18n.t('proposal.date_range', { start: shortDate(s), end: shortDate(e) });
   });
+
+  function shortDate(iso: string): string {
+    return i18n.date(iso, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
 </script>
 
+<!-- A sentence with a link in it: the message marks the link text with <em>. -->
 <svelte:head>
   <title>{data.proposal.title} — Civitas</title>
 </svelte:head>
@@ -128,7 +165,9 @@
 <!-- HERO -->
 <section class="mx-auto max-w-civic px-5 pb-10 pt-16 sm:px-10">
   <p class="mb-6 font-mono text-[11px] uppercase tracking-[0.16em] text-ink-400">
-    <a href="/proposals" class="hover:text-ink-600 hover:underline">Proposals</a> ›
+    <a href="/proposals" class="hover:text-ink-600 hover:underline"
+      >{i18n.t('proposal.breadcrumb')}</a
+    > ›
   </p>
   <div class="mb-6 flex flex-wrap items-center gap-4">
     <span
@@ -149,16 +188,16 @@
       ></span>{pill.label}
     </span>
     <span class="font-mono text-[12px] uppercase tracking-[0.18em] text-ink-400">
-      Proposal · {data.proposal.id.slice(0, 8)}
+      {i18n.t('proposal.id_label', { id: data.proposal.id.slice(0, 8) })}
     </span>
     {#if countdown}
       <span class="ml-auto flex items-center gap-2.5">
-        <span class="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">closes in</span
+        <span class="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400"
+          >{i18n.t('proposal.closes_in')}</span
         >
         <span class="font-mono text-[13px] font-medium tabular-nums tracking-[0.04em] text-ink-900">
-          {countdown.days}d {countdown.h}:{countdown.m}:<span class="text-accent-600"
-            >{countdown.s}</span
-          >
+          {i18n.t('proposal.countdown_days', { days: countdown.days })}
+          {countdown.h}:{countdown.m}:<span class="text-accent-600">{countdown.s}</span>
         </span>
       </span>
     {/if}
@@ -176,30 +215,26 @@
   <div class="mt-10 flex flex-wrap gap-12 border-t border-line pt-6">
     <div>
       <div class="mb-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-        Deliberation
+        {i18n.t('proposal.stat.deliberation')}
       </div>
       <div class="text-[15px] font-medium tabular-nums">
-        {data.comments.length} comment{data.comments.length === 1 ? '' : 's'}
+        {i18n.t('proposal.comment_count', { count: data.comments.length })}
       </div>
     </div>
     {#if votingWindow}
       <div>
         <div class="mb-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-          Voting window
+          {i18n.t('proposal.stat.voting_window')}
         </div>
         <div class="text-[15px] font-medium tabular-nums">{votingWindow}</div>
       </div>
     {/if}
     <div>
       <div class="mb-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-        Opened
+        {i18n.t('proposal.stat.opened')}
       </div>
       <div class="text-[15px] font-medium tabular-nums">
-        {new Date(data.proposal.created_at).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        })}
+        {shortDate(data.proposal.created_at)}
       </div>
     </div>
   </div>
@@ -207,15 +242,14 @@
 
 {#if voteSuccess}
   <div class="mx-auto max-w-civic px-5 pb-2 sm:px-10">
-    <Banner tone="success" title="Vote recorded">
-      Your vote ({choiceLabel[voteSuccess]}) was recorded. You can change it until the voting window
-      closes.
+    <Banner tone="success" title={i18n.t('proposal.vote_recorded_title')}>
+      {i18n.t('proposal.vote_recorded_body', { choice: choiceLabel(voteSuccess) })}
     </Banner>
   </div>
 {/if}
 {#if voteError}
   <div class="mx-auto max-w-civic px-5 pb-2 sm:px-10">
-    <Banner tone="error" title="Could not record vote">{voteError}</Banner>
+    <Banner tone="error" title={i18n.t('proposal.vote_failed_title')}>{voteError}</Banner>
   </div>
 {/if}
 
@@ -226,13 +260,15 @@
   <!-- DOCUMENT -->
   <article class="min-w-0">
     <div class="mb-3.5 font-mono text-[11px] uppercase tracking-[0.16em] text-accent-600">
-      § The proposal
+      § {i18n.t('proposal.document_heading')}
     </div>
     <Markdown source={data.proposal.body} />
 
     {#if closedResult}
       <div class="mt-9 rounded border border-line bg-card px-6 py-5">
-        <div class="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">Outcome</div>
+        <div class="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
+          {i18n.t('proposal.outcome.label')}
+        </div>
         <div class="mt-1.5 font-serif text-[28px] font-semibold">{closedResult}</div>
       </div>
     {/if}
@@ -244,7 +280,7 @@
     {#if data.currentUser && trail}
       <div class="rounded border border-line bg-card p-5">
         <div class="mb-3 font-mono text-[10px] uppercase tracking-[0.16em] text-ink-400">
-          Your standing
+          {i18n.t('proposal.standing_title')}
         </div>
         <div class="flex items-start gap-3">
           <span
@@ -255,17 +291,22 @@
           >
             {initials(data.currentUser.display_name)}
           </span>
-          <div class="text-[14px] leading-[1.45]">
+          <div class="text-[14px] leading-[1.45] [&_strong]:font-semibold">
             {#if trail.kind === 'direct'}
-              You voted <strong class="font-semibold">directly</strong>. Your weight counts as
-              <strong class="font-semibold">{choiceLabel[trail.choice]}</strong> and no longer follows
-              your delegation.
+              <Rich
+                parts={i18n.rich('proposal.standing_direct', { choice: choiceLabel(trail.choice) })}
+              />
             {:else if trail.kind === 'delegated'}
-              Your vote is <strong class="font-semibold">delegated</strong> on this topic. It
-              follows your trust chain and currently counts as
-              <strong class="font-semibold text-affirm-600">{choiceLabel[trail.choice]}</strong>.
+              <span><Rich parts={i18n.rich('proposal.standing_delegated')} /></span>
+              <span class="[&_strong]:text-affirm-600"
+                ><Rich
+                  parts={i18n.rich('proposal.standing_delegated_choice', {
+                    choice: choiceLabel(trail.choice)
+                  })}
+                /></span
+              >
             {:else}
-              Your weight is not currently counted on this proposal.
+              {i18n.t('proposal.standing_not_counted')}
             {/if}
           </div>
         </div>
@@ -279,7 +320,7 @@
 
     <!-- LIVE TALLY -->
     <div class="rounded border border-line bg-card p-5">
-      <TallyDisplay tally={data.tally} live={data.proposal.status === 'voting'} />
+      <TallyDisplay {tally} live={isVoting} />
     </div>
   </aside>
 </section>
@@ -289,21 +330,19 @@
   <div class="mx-auto max-w-civic px-5 py-[72px] sm:px-10">
     <div class="mb-2 flex flex-wrap items-baseline justify-between gap-4">
       <div class="font-mono text-[11px] uppercase tracking-[0.2em] text-band-mute">
-        The mechanism
+        {i18n.t('proposal.mechanism.eyebrow')}
       </div>
       <div class="font-mono text-[11px] uppercase tracking-[0.1em] text-band-mute">
-        Transitive · cycle-checked · auditable
+        {i18n.t('proposal.mechanism.traits')}
       </div>
     </div>
     <h2
       class="mb-2 font-serif text-[clamp(30px,4vw,46px)] font-medium leading-[1.08] tracking-[-0.01em]"
     >
-      How your vote travels
+      {i18n.t('proposal.mechanism.title')}
     </h2>
     <p class="mb-12 max-w-[60ch] font-serif text-[19px] leading-[1.55] text-[#b9b6aa]">
-      When you delegate, your weight flows along a chain of people you trust until it reaches
-      someone who votes directly. Every link is shown — nothing is hidden, and a direct vote always
-      wins.
+      {i18n.t('proposal.mechanism.body')}
     </p>
 
     {#if chainNodes}
@@ -313,11 +352,11 @@
           <div
             class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(125,151,255,0.5)] bg-[rgba(125,151,255,0.14)] font-serif text-[18px] font-semibold text-[#cdd6ff]"
           >
-            You
+            {i18n.t('proposal.chain.you')}
           </div>
-          <div class="mt-3 text-[14px] font-semibold">You</div>
+          <div class="mt-3 text-[14px] font-semibold">{i18n.t('proposal.chain.you')}</div>
           <div class="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8f8c80]">
-            Delegating
+            {i18n.t('proposal.chain.delegating')}
           </div>
         </div>
         {#each chainNodes.mids as hop (hop.name)}
@@ -332,7 +371,7 @@
             </div>
             <div class="mt-3 text-[14px] font-semibold">{hop.name}</div>
             <div class="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8f8c80]">
-              re-delegates
+              {i18n.t('proposal.chain.redelegates')}
             </div>
           </div>
         {/each}
@@ -350,7 +389,7 @@
           <div
             class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-affirm-600 bg-[rgba(58,107,78,0.22)] px-[11px] py-[5px] font-mono text-[10px] uppercase tracking-[0.1em] text-[#bfe0c9]"
           >
-            ● Voted {choiceLabel[chainNodes.choice]}
+            ● {i18n.t('proposal.chain.voted', { choice: choiceLabel(chainNodes.choice) })}
           </div>
         </div>
       </div>
@@ -358,13 +397,15 @@
       <div
         class="inline-flex items-center gap-2.5 rounded-full border border-[rgba(176,73,47,0.6)] bg-[rgba(176,73,47,0.14)] px-4 py-2.5 font-mono text-[11px] uppercase tracking-[0.1em] text-[#e8a48f]"
       >
-        ◆ Direct vote active — your weight no longer follows a delegation chain
+        ◆ {i18n.t('proposal.chain.direct_active')}
       </div>
     {:else}
       <p class="font-mono text-[12px] leading-[1.7] tracking-[0.04em] text-[#8f8c80]">
-        You are voting directly on this topic. Delegate it from your
-        <a href="/delegations" class="text-[#cdd6ff] hover:underline">delegations</a> to let a trusted
-        citizen carry your weight — and watch the chain appear here.
+        <Rich
+          parts={i18n.rich('proposal.chain.none')}
+          href="/delegations"
+          linkClass="text-[#cdd6ff] underline underline-offset-2"
+        />
       </p>
     {/if}
   </div>
@@ -373,12 +414,14 @@
 <!-- DELIBERATION -->
 <section class="mx-auto max-w-civic px-5 py-16 sm:px-10">
   <div class="mb-7 flex items-baseline justify-between">
-    <h2 class="font-serif text-[30px] font-semibold tracking-[-0.01em]">Deliberation</h2>
+    <h2 class="font-serif text-[30px] font-semibold tracking-[-0.01em]">
+      {i18n.t('proposal.deliberation.title')}
+    </h2>
     <a
       href="/proposals/{data.proposal.id}/deliberate"
       class="font-mono text-[11px] uppercase tracking-[0.1em] text-accent-600 hover:underline"
     >
-      View all {data.comments.length} →
+      {i18n.t('proposal.deliberation.view_all', { count: data.comments.length })} →
     </a>
   </div>
 
@@ -386,15 +429,17 @@
     <p
       class="rounded border border-dashed border-line px-6 py-6 font-serif text-[17px] text-ink-600"
     >
-      No comments yet.
-      <a href="/proposals/{data.proposal.id}/deliberate" class="text-accent-600 hover:underline"
-        >Open the thread</a
-      > to start the discussion.
+      <Rich
+        parts={i18n.rich('proposal.deliberation.empty')}
+        href="/proposals/{data.proposal.id}/deliberate"
+        linkClass="text-accent-600 underline underline-offset-2 hover:text-accent-700"
+      />
     </p>
   {:else}
     <div class="overflow-hidden rounded border border-line">
       {#each previewComments as c, i (c.id)}
-        {@const sm = stanceMeta[c.stance] ?? stanceMeta.neutral}
+        {@const stance = knownStance(c.stance)}
+        {@const sm = stanceMeta[stance]}
         <div class="bg-card px-6 py-[22px] {i > 0 ? 'border-t border-line' : ''}">
           <div class="mb-2.5 flex items-center gap-3">
             <span
@@ -405,7 +450,7 @@
             <span class="font-mono text-[12px] text-ink-600">{c.author_id.slice(0, 8)}</span>
             <span
               class="inline-flex rounded-full px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] {sm.text}"
-              style="background:rgba(0,0,0,0.04);">{sm.label}</span
+              style="background:rgba(0,0,0,0.04);">{i18n.t(`proposal.stance.${stance}`)}</span
             >
             <span class="ml-auto font-mono text-[11px] text-ink-400">{relTime(c.created_at)}</span>
           </div>

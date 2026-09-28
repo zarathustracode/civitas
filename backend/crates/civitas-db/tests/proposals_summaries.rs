@@ -11,7 +11,7 @@ use uuid::Uuid;
 
 use civitas_core::{eligibility::EligibilityPolicy, tally};
 use civitas_db::{comments, eligibility, proposals, topics, users, votes};
-use civitas_types::{ProposalStatus, Stance, VoteChoice, Weight};
+use civitas_types::{ProposalId, ProposalStatus, Stance, VoteChoice, Weight};
 
 fn unique(prefix: &str) -> String {
     format!("{prefix}-{}", Uuid::now_v7().simple())
@@ -128,6 +128,14 @@ async fn docket_summary_tally_and_visible_comment_count() {
         .count();
     assert_eq!(visible_count, 1, "only the untouched comment is visible");
 
+    // The docket's batched count agrees, and omits proposals with none.
+    let untouched = ProposalId::new();
+    let counts = comments::count_visible_by_proposal(&pool, &[proposal.id, untouched])
+        .await
+        .unwrap();
+    assert_eq!(counts.get(&proposal.id), Some(&1));
+    assert!(!counts.contains_key(&untouched));
+
     // Move to voting and cast one vote each way.
     let mut tx = pool.begin().await.unwrap();
     let now = Utc::now();
@@ -152,6 +160,29 @@ async fn docket_summary_tally_and_visible_comment_count() {
         .await
         .unwrap();
     assert_eq!(active.len(), 2, "one active vote per voter");
+
+    // A changed vote still yields one row per voter in the batched load.
+    let mut tx = pool.begin().await.unwrap();
+    votes::record(&mut tx, proposal.id, voter.id, VoteChoice::Abstain)
+        .await
+        .unwrap();
+    votes::record(&mut tx, proposal.id, voter.id, VoteChoice::No)
+        .await
+        .unwrap();
+    tx.commit().await.unwrap();
+    let mut batched = votes::load_active_for_proposals(&pool, &[proposal.id, untouched])
+        .await
+        .unwrap();
+    let mut single = votes::load_active_for_proposal(&pool, proposal.id)
+        .await
+        .unwrap();
+    batched.sort_by_key(|v| v.voter_id);
+    single.sort_by_key(|v| v.voter_id);
+    assert_eq!(
+        batched, single,
+        "batched load matches the per-proposal load"
+    );
+    assert_eq!(batched.len(), 2);
 
     let dels = civitas_db::delegations::load_active_for_topic(&pool, topic.id)
         .await

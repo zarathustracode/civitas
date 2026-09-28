@@ -12,11 +12,13 @@
 //! - [`verification`] — `VerificationProvider` trait + email impl.
 //! - [`register`] — registration flow (user create + verification token).
 //! - [`login`] — credential check + session issuance.
+//! - [`login_link`] — passwordless sign-in by emailed link.
 //! - [`password_reset`] — request + complete.
 
 #![doc(html_root_url = "https://docs.rs/civitas-auth/0.1.0")]
 
 pub mod login;
+pub mod login_link;
 pub mod password;
 pub mod password_reset;
 pub mod register;

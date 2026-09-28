@@ -6,11 +6,13 @@
 #![doc(html_root_url = "https://docs.rs/civitas-api/0.1.0")]
 
 pub mod auth_extractor;
+pub mod client_info;
 pub mod config;
 pub mod cookies;
 pub mod dto;
 pub mod error;
 pub mod jobs;
+pub mod live;
 pub mod mailer;
 pub mod routes;
 pub mod security;
@@ -63,6 +65,7 @@ pub fn router(state: AppState) -> Router {
         .nest("/delegations", routes::delegations::router())
         .nest("/comments", routes::comments::router())
         .nest("/users", routes::users::router())
+        .nest("/operator", routes::operator::router())
         .layer(axum::middleware::from_fn_with_state(
             state.clone(),
             security::verify_origin,

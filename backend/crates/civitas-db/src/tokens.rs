@@ -1,4 +1,4 @@
-//! Email-verification and password-reset tokens.
+//! Email-verification, password-reset, and login-link tokens.
 //!
 //! Same hash-only storage pattern as sessions: the plaintext is sent to the
 //! user; only the hash is stored. Issuing a new token does not invalidate
@@ -131,6 +131,68 @@ pub async fn revoke_all_password_resets<'c, E: PgExecutor<'c>>(
     let r = sqlx::query!(
         r#"
         update password_reset_tokens
+        set consumed_at = now()
+        where user_id = $1 and consumed_at is null
+        "#,
+        user_id.into_inner(),
+    )
+    .execute(conn)
+    .await?;
+    Ok(r.rows_affected())
+}
+
+// ─── login links ─────────────────────────────────────────────────────────────
+
+pub async fn issue_login_link(
+    tx: &mut Transaction<'_, Postgres>,
+    user_id: UserId,
+    token_hash: &str,
+    expires_at: DateTime<Utc>,
+) -> DbResult<Uuid> {
+    let id = Uuid::now_v7();
+    sqlx::query!(
+        r#"
+        insert into login_link_tokens (id, user_id, token_hash, expires_at)
+        values ($1, $2, $3, $4)
+        "#,
+        id,
+        user_id.into_inner(),
+        token_hash,
+        expires_at,
+    )
+    .execute(&mut **tx)
+    .await?;
+    Ok(id)
+}
+
+/// Consume a login-link token. Returns the `user_id` to open a session for.
+pub async fn consume_login_link(
+    tx: &mut Transaction<'_, Postgres>,
+    token_hash: &str,
+) -> DbResult<Option<UserId>> {
+    let row = sqlx::query!(
+        r#"
+        update login_link_tokens
+        set consumed_at = now()
+        where token_hash = $1 and consumed_at is null and expires_at > now()
+        returning user_id as "user_id: UserId"
+        "#,
+        token_hash,
+    )
+    .fetch_optional(&mut **tx)
+    .await?;
+    Ok(row.map(|r| r.user_id))
+}
+
+/// Retire every unused login link for `user_id` — before issuing a fresh
+/// one, and after a password reset.
+pub async fn revoke_all_login_links<'c, E: PgExecutor<'c>>(
+    conn: E,
+    user_id: UserId,
+) -> DbResult<u64> {
+    let r = sqlx::query!(
+        r#"
+        update login_link_tokens
         set consumed_at = now()
         where user_id = $1 and consumed_at is null
         "#,

@@ -14,7 +14,7 @@ The minimum viable instance that demonstrates the model end-to-end on a single d
 - [x] `civitas-api`: HTTP endpoints for all v1 operations, with rate limiting and CSRF (origin verification)
 - [x] SvelteKit frontend covering all v1 routes
 - [x] Docker development setup
-- [x] CI pipeline (tests, lint, audit) — accessibility and Lighthouse checks land with the v0.2 audit items below
+- [x] CI pipeline (tests, lint, audit) — accessibility and performance checks followed in v0.2
 - [x] Seed data script
 - [x] Playwright E2E coverage of critical flows (register, vote, delegate)
 - [x] Markdown transcription of the manifesto
@@ -23,12 +23,13 @@ Exit criteria: a small group can register, deliberate, vote, and delegate end-to
 
 ## v0.2 — Hardening and visibility
 
-- Real-time tally updates on the proposal page (server-sent events; small surface)
-- Email-templating polish; magic-link login as alternative to passwords
-- Operator dashboard (read-only): registered users, active proposals, recent audit events
-- Accessibility: automated checks in CI, improved manual audit, broader screen reader testing
-- Performance budget enforcement in CI (Lighthouse + backend P99)
-- Spanish and one Slavic translation as proof of i18n pipeline
+- [x] Real-time tally updates on the proposal page (server-sent events; small surface)
+- [x] Email-templating polish; magic-link login as alternative to passwords
+- [x] Operator dashboard (read-only): registered users, active proposals, recent audit events
+- [x] Accessibility: automated checks in CI (axe-core on every route, WCAG 2.1 A/AA)
+- [ ] Accessibility: improved manual audit, broader screen reader testing
+- [x] Performance budget enforcement in CI (Lighthouse + backend P99)
+- [x] Spanish and one Slavic translation (Polish) as proof of i18n pipeline — the interface is translated; emails are still English
 
 ## v0.3 — Stronger identity (preparation)
 

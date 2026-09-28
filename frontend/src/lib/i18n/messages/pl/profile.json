@@ -1,0 +1,17 @@
+{
+  "title": "Profil",
+  "eyebrow": "Konto",
+  "heading": "Twój profil",
+  "unverified_title": "Adres e-mail niepotwierdzony",
+  "unverified_body": "Możesz przeglądać i czytać, ale aby głosować i publikować, musisz potwierdzić adres e-mail.",
+  "verify_now": "Potwierdź teraz →",
+  "display_name": "Nazwa wyświetlana",
+  "email": "E-mail",
+  "email_verified": "potwierdzony",
+  "email_pending": "oczekuje",
+  "user_id": "ID konta",
+  "member_since": "Data dołączenia",
+  "operator_note": "Obsługujesz tę instalację.",
+  "operator_link": "Otwórz panel operatora →",
+  "log_out": "Wyloguj się"
+}

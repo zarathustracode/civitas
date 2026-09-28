@@ -1,8 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import type { PageData } from './$types';
+  import { getI18n } from '$lib/i18n';
+  import Rich from '$lib/components/Rich.svelte';
 
   let { data }: { data: PageData } = $props();
+
+  const i18n = getI18n();
 
   const reduceMotion =
     typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -32,10 +36,10 @@
   const fmt = (n: number) => {
     const r = Math.round(n * 10) / 10;
     return Number.isInteger(r)
-      ? r.toLocaleString('en-US')
-      : r.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+      ? i18n.number(r)
+      : i18n.number(r, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   };
-  const whole = (n: number) => Math.round(n).toLocaleString('en-US');
+  const whole = (n: number) => i18n.number(Math.round(n));
 
   const endsAt = $derived(
     data.featured?.voting_ends_at ? new Date(data.featured.voting_ends_at).getTime() : 0
@@ -84,7 +88,7 @@
 </script>
 
 <svelte:head>
-  <title>Civitas — direct democracy with delegation</title>
+  <title>Civitas — {i18n.t('landing.page_title')}</title>
 </svelte:head>
 
 <!-- HERO -->
@@ -93,32 +97,28 @@
 >
   <div>
     <div class="mb-6 font-mono text-[11px] uppercase tracking-[0.22em] text-ink-400">
-      Open civic infrastructure
+      {i18n.t('landing.hero.eyebrow')}
     </div>
     <h1
-      class="font-serif text-[clamp(44px,6vw,76px)] font-semibold leading-[1.02] tracking-[-0.02em]"
+      class="font-serif text-[clamp(44px,6vw,76px)] font-semibold leading-[1.02] tracking-[-0.02em] [&_em]:block [&_em]:font-medium [&_em]:italic [&_em]:text-ink-600"
     >
-      Vote directly —<br /><span class="font-medium italic text-ink-600"
-        >or trust someone who will.</span
-      >
+      <Rich parts={i18n.rich('landing.hero.title')} />
     </h1>
     <p class="mt-7 max-w-[52ch] font-serif text-[21px] leading-[1.55] text-ink-600">
-      Civitas is a platform for direct democracy with optional, per-topic delegation. Verified
-      citizens decide policy together — every tally public, every change reversible, every weight
-      traceable to the person who carried it.
+      {i18n.t('landing.hero.body')}
     </p>
     <div class="mt-8 flex flex-wrap gap-3">
       <a
         href="/proposals"
         class="inline-flex items-center gap-2 rounded-[3px] bg-accent-600 px-[22px] py-[14px] text-[15px] font-semibold text-white transition-colors hover:bg-accent-700"
       >
-        Browse proposals <span class="font-mono">→</span>
+        {i18n.t('landing.hero.browse')} <span class="font-mono">→</span>
       </a>
       <a
         href="/delegations"
         class="inline-flex items-center rounded-[3px] border border-line bg-white px-[22px] py-[14px] text-[15px] font-medium text-ink-900 transition-colors hover:border-ink-900"
       >
-        Manage delegations
+        {i18n.t('landing.hero.delegations')}
       </a>
     </div>
   </div>
@@ -137,13 +137,13 @@
               class="h-[6px] w-[6px] rounded-full bg-accent-600"
               style="animation:blink 2s steps(1) infinite;"
               aria-hidden="true"
-            ></span>Voting now
+            ></span>{i18n.t('landing.featured.live')}
           </span>
           <span class="font-mono text-[11px] tabular-nums tracking-[0.06em] text-ink-400">
             {#if countdown}
-              closes {countdown.days}d {countdown.h}:{countdown.m}:{countdown.s}
+              {i18n.t('landing.featured.closes', countdown)}
             {:else}
-              voting open
+              {i18n.t('landing.featured.voting_open')}
             {/if}
           </span>
         </div>
@@ -158,7 +158,7 @@
         <div class="flex flex-col gap-[11px]">
           <div>
             <div class="mb-[5px] flex justify-between font-mono text-[12px]">
-              <span class="font-medium text-affirm-600">Yes</span>
+              <span class="font-medium text-affirm-600">{i18n.t('common.choice.yes')}</span>
               <span class="tabular-nums text-ink-600">{fmt(dispYes)}</span>
             </div>
             <div class="h-[7px] overflow-hidden rounded-full bg-ink-100">
@@ -170,7 +170,7 @@
           </div>
           <div>
             <div class="mb-[5px] flex justify-between font-mono text-[12px]">
-              <span class="font-medium text-oppose-600">No</span>
+              <span class="font-medium text-oppose-600">{i18n.t('common.choice.no')}</span>
               <span class="tabular-nums text-ink-600">{fmt(dispNo)}</span>
             </div>
             <div class="h-[7px] overflow-hidden rounded-full bg-ink-100">
@@ -184,8 +184,8 @@
         <div
           class="mt-[18px] flex items-center justify-between border-t border-line pt-[14px] font-mono text-[11px] text-ink-400"
         >
-          <span class="tabular-nums">{turnout}% turnout</span>
-          <span class="text-accent-600">open proposal →</span>
+          <span class="tabular-nums">{i18n.t('landing.featured.turnout', { turnout })}</span>
+          <span class="text-accent-600">{i18n.t('landing.featured.open')} →</span>
         </div>
       </div>
     </a>
@@ -193,19 +193,21 @@
     <a href="/proposals" class="block text-ink-900">
       <div class="rounded-[5px] border border-line bg-card p-6">
         <div class="mb-[18px] font-mono text-[10px] uppercase tracking-[0.12em] text-ink-400">
-          The docket
+          {i18n.t('landing.empty.eyebrow')}
         </div>
         <div class="mb-2 font-serif text-[24px] font-semibold leading-[1.18]">
-          No proposals are open for voting right now.
+          {i18n.t('landing.empty.title')}
         </div>
         <p class="font-serif text-[17px] leading-[1.5] text-ink-600">
-          Browse the docket to follow what is in deliberation and what has closed.
+          {i18n.t('landing.empty.body')}
         </p>
         <div
           class="mt-[18px] flex items-center justify-between border-t border-line pt-[14px] font-mono text-[11px] text-ink-400"
         >
-          <span class="tabular-nums">{whole(statDelib)} in deliberation</span>
-          <span class="text-accent-600">open docket →</span>
+          <span class="tabular-nums"
+            >{i18n.t('landing.empty.in_deliberation', { count: Math.round(statDelib) })}</span
+          >
+          <span class="text-accent-600">{i18n.t('landing.empty.open')} →</span>
         </div>
       </div>
     </a>
@@ -218,54 +220,55 @@
     <div class="flex items-baseline gap-3">
       <span class="font-mono text-[30px] font-medium tabular-nums">{whole(statVoting)}</span>
       <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-400">
-        proposals open
+        {i18n.t('landing.stats.voting', { count: Math.round(statVoting) })}
       </span>
     </div>
     <div class="flex items-baseline gap-3">
       <span class="font-mono text-[30px] font-medium tabular-nums">{whole(statDelib)}</span>
       <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-400">
-        in deliberation
+        {i18n.t('landing.stats.deliberation')}
       </span>
     </div>
     <div class="flex items-baseline gap-3">
       <span class="font-mono text-[30px] font-medium tabular-nums">{whole(statTopics)}</span>
-      <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-400"> topics </span>
+      <span class="font-mono text-[11px] uppercase tracking-[0.1em] text-ink-400">
+        {i18n.t('landing.stats.topics', { count: Math.round(statTopics) })}
+      </span>
     </div>
   </div>
 </section>
 
 <!-- HOW IT WORKS -->
 <section class="mx-auto max-w-civic px-5 py-20 sm:px-10">
-  <div class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">How it works</div>
+  <h2 class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
+    {i18n.t('landing.how.title')}
+  </h2>
   <div class="grid gap-9 md:grid-cols-3">
     <div>
       <div class="mb-4 font-mono text-[13px] text-accent-600">01</div>
       <h3 class="mb-2.5 font-serif text-[24px] font-semibold tracking-[-0.01em]">
-        Register &amp; verify
+        {i18n.t('landing.how.step1_title')}
       </h3>
       <p class="font-serif text-[17px] leading-[1.55] text-ink-600">
-        Verify your email and you become eligible to vote and to take part in structured
-        deliberation. Minimal data, clear retention, easy deletion.
+        {i18n.t('landing.how.step1_body')}
       </p>
     </div>
     <div>
       <div class="mb-4 font-mono text-[13px] text-accent-600">02</div>
       <h3 class="mb-2.5 font-serif text-[24px] font-semibold tracking-[-0.01em]">
-        Read &amp; deliberate
+        {i18n.t('landing.how.step2_title')}
       </h3>
       <p class="font-serif text-[17px] leading-[1.55] text-ink-600">
-        Every proposal carries its full body and an open thread. Argue, question, and surface the
-        trade-offs before anything is decided.
+        {i18n.t('landing.how.step2_body')}
       </p>
     </div>
     <div>
       <div class="mb-4 font-mono text-[13px] text-accent-600">03</div>
       <h3 class="mb-2.5 font-serif text-[24px] font-semibold tracking-[-0.01em]">
-        Vote or delegate
+        {i18n.t('landing.how.step3_title')}
       </h3>
       <p class="font-serif text-[17px] leading-[1.55] text-ink-600">
-        Cast a direct vote, or delegate a topic to someone you trust. Tallies report every weight
-        with the chain that carried it.
+        {i18n.t('landing.how.step3_body')}
       </p>
     </div>
   </div>
@@ -275,32 +278,33 @@
 <section class="bg-band text-band-ink">
   <div class="mx-auto max-w-civic px-5 py-20 sm:px-10">
     <div class="mb-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-band-mute">
-      The mechanism
+      {i18n.t('landing.mechanism.eyebrow')}
     </div>
     <h2
       class="mb-2.5 max-w-[18ch] font-serif text-[clamp(32px,4.4vw,52px)] font-medium leading-[1.06] tracking-[-0.015em]"
     >
-      A direct vote always wins.
+      {i18n.t('landing.mechanism.title')}
     </h2>
     <p class="mb-14 max-w-[58ch] font-serif text-[20px] leading-[1.55] text-[#b9b6aa]">
-      Delegated weight flows along a chain of trust until it reaches someone who votes directly.
-      Every link is visible. The moment you vote yourself, your weight leaves the chain.
+      {i18n.t('landing.mechanism.body')}
     </p>
 
     <!-- CHAIN (illustrative) -->
     <div class="flex min-w-0 items-start" aria-hidden="true">
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-[rgba(125,151,255,0.5)] bg-[rgba(125,151,255,0.14)] font-serif text-[18px] font-semibold text-[#cdd6ff]"
         >
-          You
+          {i18n.t('landing.mechanism.you')}
         </div>
-        <div class="mt-[13px] text-[14px] font-semibold">You</div>
+        <div class="mt-[13px] text-[14px] font-semibold">{i18n.t('landing.mechanism.you')}</div>
         <div class="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8f8c80]">
-          1.0 weight
+          {i18n.t('landing.mechanism.weight', {
+            weight: i18n.number(1, { minimumFractionDigits: 1 })
+          })}
         </div>
       </div>
-      <div class="relative h-16 min-w-[40px] flex-1">
+      <div class="relative h-16 min-w-[24px] flex-1 sm:min-w-[40px]">
         <div
           class="absolute left-0 right-0 top-[31px] h-0.5 origin-left bg-white/15"
           style="animation:drawLine .9s ease both .2s;"
@@ -310,7 +314,7 @@
           style="background:linear-gradient(90deg,transparent,var(--glow),transparent); filter:blur(.5px); animation:flow 2.2s linear infinite .9s;"
         ></div>
       </div>
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/5 font-serif text-[18px] font-semibold"
         >
@@ -318,10 +322,10 @@
         </div>
         <div class="mt-[13px] text-[14px] font-semibold">Mara Lindqvist</div>
         <div class="mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-[#8f8c80]">
-          re-delegates
+          {i18n.t('landing.mechanism.redelegates')}
         </div>
       </div>
-      <div class="relative h-16 min-w-[40px] flex-1">
+      <div class="relative h-16 min-w-[24px] flex-1 sm:min-w-[40px]">
         <div
           class="absolute left-0 right-0 top-[31px] h-0.5 origin-left bg-white/15"
           style="animation:drawLine .9s ease both .55s;"
@@ -331,7 +335,7 @@
           style="background:linear-gradient(90deg,transparent,var(--glow),transparent); filter:blur(.5px); animation:flow 2.2s linear infinite 2s;"
         ></div>
       </div>
-      <div class="w-[184px] flex-none text-center">
+      <div class="w-[88px] flex-none text-center sm:w-[184px]">
         <div
           class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-[1.5px] border-affirm-600 bg-[rgba(58,107,78,0.2)] font-serif text-[18px] font-semibold text-[#bfe0c9]"
           style="animation:ringPulse 3s ease-in-out infinite;"
@@ -340,9 +344,9 @@
         </div>
         <div class="mt-[13px] text-[14px] font-semibold">Dr. Osei Boateng</div>
         <div
-          class="mt-2 inline-flex items-center gap-1.5 rounded-full border border-affirm-600 bg-[rgba(58,107,78,0.22)] px-[11px] py-[5px] font-mono text-[10px] uppercase tracking-[0.1em] text-[#bfe0c9]"
+          class="mt-2 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-affirm-600 bg-[rgba(58,107,78,0.22)] px-[11px] py-[5px] font-mono text-[10px] uppercase tracking-[0.1em] text-[#bfe0c9]"
         >
-          ● Voted Yes
+          ● {i18n.t('landing.mechanism.voted_yes')}
         </div>
       </div>
     </div>
@@ -351,38 +355,42 @@
 
 <!-- PRINCIPLES -->
 <section class="mx-auto max-w-civic px-5 py-20 sm:px-10">
-  <div class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
-    What we hold to
-  </div>
+  <h2 class="mb-9 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
+    {i18n.t('landing.principles.title')}
+  </h2>
   <div
     class="grid grid-cols-1 gap-px overflow-hidden rounded border border-line bg-line sm:grid-cols-2"
   >
     <div class="bg-card px-8 py-[30px]">
-      <h3 class="mb-2 font-serif text-[22px] font-semibold">Sovereignty</h3>
+      <h3 class="mb-2 font-serif text-[22px] font-semibold">
+        {i18n.t('landing.principles.sovereignty_title')}
+      </h3>
       <p class="font-serif text-[17px] leading-[1.5] text-ink-600">
-        Users hold real authority over their own votes and delegations — never a recommendation
-        engine deciding for them.
+        {i18n.t('landing.principles.sovereignty_body')}
       </p>
     </div>
     <div class="bg-card px-8 py-[30px]">
-      <h3 class="mb-2 font-serif text-[22px] font-semibold">Transparency</h3>
+      <h3 class="mb-2 font-serif text-[22px] font-semibold">
+        {i18n.t('landing.principles.transparency_title')}
+      </h3>
       <p class="font-serif text-[17px] leading-[1.5] text-ink-600">
-        All tallies are publicly verifiable. Every state change is recorded in an append-only audit
-        log.
+        {i18n.t('landing.principles.transparency_body')}
       </p>
     </div>
     <div class="bg-card px-8 py-[30px]">
-      <h3 class="mb-2 font-serif text-[22px] font-semibold">Reversibility</h3>
+      <h3 class="mb-2 font-serif text-[22px] font-semibold">
+        {i18n.t('landing.principles.reversibility_title')}
+      </h3>
       <p class="font-serif text-[17px] leading-[1.5] text-ink-600">
-        Votes can be changed while the window is open; delegations revoked at any time. Nothing you
-        decide is a trap.
+        {i18n.t('landing.principles.reversibility_body')}
       </p>
     </div>
     <div class="bg-card px-8 py-[30px]">
-      <h3 class="mb-2 font-serif text-[22px] font-semibold">Resistance to capture</h3>
+      <h3 class="mb-2 font-serif text-[22px] font-semibold">
+        {i18n.t('landing.principles.capture_title')}
+      </h3>
       <p class="font-serif text-[17px] leading-[1.5] text-ink-600">
-        Licensed AGPL-3.0 to keep the civic commons from corporate enclosure. The code itself
-        supports self-governance.
+        {i18n.t('landing.principles.capture_body')}
       </p>
     </div>
   </div>
@@ -394,14 +402,14 @@
     <h2
       class="mx-auto max-w-[20ch] font-serif text-[clamp(28px,3.4vw,40px)] font-semibold leading-[1.1] tracking-[-0.015em]"
     >
-      Collective decisions, made legible and reversible.
+      {i18n.t('landing.cta.title')}
     </h2>
     <div class="mt-[30px] flex flex-wrap justify-center gap-3">
       <a
         href="/proposals"
         class="inline-flex items-center gap-2 rounded-[3px] bg-ink-900 px-6 py-[14px] text-[15px] font-semibold text-white"
       >
-        Browse proposals <span class="font-mono">→</span>
+        {i18n.t('landing.hero.browse')} <span class="font-mono">→</span>
       </a>
     </div>
   </div>

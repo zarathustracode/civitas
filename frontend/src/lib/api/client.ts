@@ -30,7 +30,7 @@ export interface ApiFetchOptions {
 }
 
 /** Browser-relative base. */
-const CLIENT_BASE_PATH = '/api';
+export const CLIENT_BASE_PATH = '/api';
 
 /**
  * Resolve the API base for the current execution context.

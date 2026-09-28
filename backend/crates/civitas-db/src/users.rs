@@ -12,6 +12,7 @@ use sqlx::{PgExecutor, Postgres, Transaction};
 use civitas_types::UserId;
 
 use crate::audit::{write_log, Action};
+use crate::tally_events::{self, TallyScope};
 use crate::{DbError, DbResult};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, sqlx::FromRow)]
@@ -279,6 +280,8 @@ pub async fn mark_email_verified(tx: &mut Transaction<'_, Postgres>, id: UserId)
             None,
         )
         .await?;
+        // Verification is the eligibility policy: every tally may move.
+        tally_events::notify(&mut **tx, TallyScope::All).await?;
     }
     // Already verified is not an error — idempotent endpoint behavior.
 
@@ -339,6 +342,7 @@ pub async fn soft_delete(tx: &mut Transaction<'_, Postgres>, id: UserId) -> DbRe
         None,
     )
     .await?;
+    tally_events::notify(&mut **tx, TallyScope::All).await?;
 
     Ok(())
 }

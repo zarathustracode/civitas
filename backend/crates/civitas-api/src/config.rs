@@ -19,6 +19,9 @@ pub struct Config {
     pub dev_return_verification_token: bool,
     pub mail: MailConfig,
     pub rate_limit: RateLimitConfig,
+    /// Lowercased addresses allowed to open the read-only operator
+    /// dashboard (`OPERATOR_EMAILS`, comma-separated). Empty disables it.
+    pub operator_emails: Vec<String>,
 }
 
 /// Per-IP token-bucket settings. `auth_*` governs the `/auth` routes
@@ -104,6 +107,7 @@ impl Config {
         let dev_return_verification_token = optional_bool("DEV_RETURN_VERIFICATION_TOKEN", false)?;
         let mail = mail_from_env()?;
         let rate_limit = rate_limit_from_env()?;
+        let operator_emails = parse_email_list(optional("OPERATOR_EMAILS").as_deref());
 
         Ok(Self {
             database_url,
@@ -114,8 +118,25 @@ impl Config {
             dev_return_verification_token,
             mail,
             rate_limit,
+            operator_emails,
         })
     }
+
+    /// Whether `email` belongs to a deployment operator. Case-insensitive,
+    /// matching the `citext` comparison the users table uses.
+    #[must_use]
+    pub fn is_operator(&self, email: &str) -> bool {
+        let email = email.trim().to_lowercase();
+        self.operator_emails.contains(&email)
+    }
+}
+
+fn parse_email_list(raw: Option<&str>) -> Vec<String> {
+    raw.unwrap_or_default()
+        .split(',')
+        .map(|e| e.trim().to_lowercase())
+        .filter(|e| !e.is_empty())
+        .collect()
 }
 
 fn rate_limit_from_env() -> Result<RateLimitConfig, ConfigError> {
@@ -236,5 +257,19 @@ fn optional_bool(var: &'static str, default: bool) -> Result<bool, ConfigError> 
             }),
         },
         None => Ok(default),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn operator_list_is_trimmed_lowercased_and_skips_blanks() {
+        assert_eq!(
+            parse_email_list(Some(" Ops@Example.org, ,second@example.org,")),
+            vec!["ops@example.org", "second@example.org"]
+        );
+        assert!(parse_email_list(None).is_empty());
     }
 }

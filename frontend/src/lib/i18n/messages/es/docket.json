@@ -1,0 +1,31 @@
+{
+  "title": "Propuestas",
+  "eyebrow": "Orden del día",
+  "intro": "Todas las cuestiones que tiene ante sí la ciudadanía, agrupadas por tema. Lee el texto, sigue la deliberación y vota directamente, o deja que tu delegación haga valer tu peso.",
+  "filter.all": "Todas",
+  "filter.voting": "Votación",
+  "filter.deliberation": "Deliberación",
+  "filter.closed": "Cerradas",
+  "filter.draft": "Borradores",
+  "empty": "Ninguna propuesta coincide con este filtro.",
+  "topic_fallback": "Tema",
+  "comment_count": {
+    "one": "{count} comentario",
+    "other": "{count} comentarios"
+  },
+  "comments_not_open": "Aún no admite comentarios",
+  "yes_share": "{percent} sí",
+  "voting_open": "votación abierta",
+  "closing": "cerrando",
+  "days_left": {
+    "one": "queda {count} día",
+    "other": "quedan {count} días"
+  },
+  "hours_left": {
+    "one": "queda {count} hora",
+    "other": "quedan {count} horas"
+  },
+  "no_votes": "sin votos contados",
+  "passed": "aprobada",
+  "failed": "rechazada"
+}

@@ -1,0 +1,11 @@
+{
+  "heading": "Cast your vote",
+  "cannot_vote": "You cannot vote on this proposal right now.",
+  "direct_vote_hint": "A direct vote overrides your delegation. You can change it until voting closes.",
+  "confirm.yes": "You are voting <strong>{choice}</strong>. You affirm this proposal.",
+  "confirm.no": "You are voting <strong>{choice}</strong>. You oppose this proposal.",
+  "confirm.abstain": "You are voting <strong>{choice}</strong>. You are present, registering no preference.",
+  "confirm_vote": "Confirm vote",
+  "confirming": "Confirming…",
+  "cancel": "Cancel"
+}

@@ -2,14 +2,17 @@
 //! [`super::proposals::router`].
 
 use std::collections::HashMap;
+use std::convert::Infallible;
 
 use axum::extract::{Path, State};
 use axum::http::StatusCode;
+use axum::response::sse::{Event, KeepAlive, Sse};
 use axum::Json;
+use futures_util::stream::{self, Stream};
 
-use civitas_core::{eligibility::EligibilityPolicy, tally as core_tally};
+use civitas_core::{eligibility::EligibilityPolicy, tally as core_tally, Tally, TrailKind};
 use civitas_db::{delegations, eligibility, proposals, users, votes};
-use civitas_types::{ProposalId, UserId};
+use civitas_types::{ProposalId, TopicId, UserId};
 
 use crate::auth_extractor::{AuthSession, OptionalAuth};
 use crate::dto::{CastVoteRequest, NamedUser, TallyResponse, UserTrail, VoteResponse};
@@ -58,50 +61,106 @@ pub async fn tally_handler(
         .map_err(ApiError::from)?
         .ok_or(ApiError::NotFound)?;
 
-    let active_votes = votes::load_active_for_proposal(state.pool(), proposal_id)
-        .await
-        .map_err(ApiError::from)?;
-    let active_dels = delegations::load_active_for_topic(state.pool(), proposal.topic_id)
-        .await
-        .map_err(ApiError::from)?;
-    let eligible = eligibility::load_eligible_users(state.pool(), EligibilityPolicy::EmailVerified)
-        .await
-        .map_err(ApiError::from)?;
-
-    let result = core_tally(
-        proposal_id,
-        proposal.topic_id,
-        &active_votes,
-        &active_dels,
-        &eligible,
-    );
-
-    let counted_voters = result
-        .trail
-        .iter()
-        .filter(|t| {
-            matches!(
-                t.kind,
-                civitas_core::TrailKind::Direct { .. } | civitas_core::TrailKind::Delegated { .. }
-            )
-        })
-        .count();
+    let computed = compute_tally(state.pool(), proposal_id, proposal.topic_id).await?;
 
     let your_trail = if let Some(session) = auth {
-        resolve_user_trail(state.pool(), session.user.id, &result.trail).await?
+        resolve_user_trail(state.pool(), session.user.id, &computed.tally.trail).await?
     } else {
         None
     };
 
     Ok(Json(TallyResponse {
         proposal_id,
-        yes: result.yes,
-        no: result.no,
-        abstain: result.abstain,
-        eligible_voters: eligible.len(),
-        counted_voters,
+        yes: computed.tally.yes,
+        no: computed.tally.no,
+        abstain: computed.tally.abstain,
+        eligible_voters: computed.eligible_voters,
+        counted_voters: computed.counted_voters,
         your_trail,
     }))
+}
+
+/// Server-sent events carrying the proposal's public tally: one `tally`
+/// event as soon as it is known, then one per change. The per-viewer trail
+/// is not streamed — it only changes through the viewer's own actions or
+/// their delegates', and the page reloads it on those.
+pub async fn tally_stream(
+    State(state): State<AppState>,
+    Path(proposal_id): Path<ProposalId>,
+) -> ApiResult<Sse<impl Stream<Item = Result<Event, Infallible>>>> {
+    let proposal = proposals::find_by_id(state.pool(), proposal_id)
+        .await
+        .map_err(ApiError::from)?
+        .ok_or(ApiError::NotFound)?;
+
+    let mut rx = state.tally_hub().subscribe(proposal_id, proposal.topic_id);
+    // Deliver the current value (if already computed) before any change.
+    rx.mark_changed();
+
+    let events = stream::unfold(rx, |mut rx| async move {
+        loop {
+            // Err: the hub dropped this proposal, which ends the stream.
+            rx.changed().await.ok()?;
+            let Some(update) = rx.borrow_and_update().clone() else {
+                continue;
+            };
+            match serde_json::to_string(&update) {
+                Ok(json) => return Some((Ok(Event::default().event("tally").data(json)), rx)),
+                Err(error) => tracing::warn!(?error, "serializing tally update failed"),
+            }
+        }
+    });
+
+    Ok(Sse::new(events).keep_alive(KeepAlive::default()))
+}
+
+/// A proposal's tally against the current eligible set, with the voter
+/// counts reported alongside it.
+pub(crate) struct ComputedTally {
+    pub tally: Tally,
+    pub eligible_voters: usize,
+    /// Eligible users whose weight reached a vote, directly or delegated.
+    pub counted_voters: usize,
+}
+
+pub(crate) async fn compute_tally(
+    pool: &sqlx::PgPool,
+    proposal_id: ProposalId,
+    topic_id: TopicId,
+) -> ApiResult<ComputedTally> {
+    let active_votes = votes::load_active_for_proposal(pool, proposal_id)
+        .await
+        .map_err(ApiError::from)?;
+    let active_dels = delegations::load_active_for_topic(pool, topic_id)
+        .await
+        .map_err(ApiError::from)?;
+    let eligible = eligibility::load_eligible_users(pool, EligibilityPolicy::EmailVerified)
+        .await
+        .map_err(ApiError::from)?;
+
+    let tally = core_tally(
+        proposal_id,
+        topic_id,
+        &active_votes,
+        &active_dels,
+        &eligible,
+    );
+    let counted_voters = tally
+        .trail
+        .iter()
+        .filter(|t| {
+            matches!(
+                t.kind,
+                TrailKind::Direct { .. } | TrailKind::Delegated { .. }
+            )
+        })
+        .count();
+
+    Ok(ComputedTally {
+        tally,
+        eligible_voters: eligible.len(),
+        counted_voters,
+    })
 }
 
 /// Find the requesting user's trail entry and resolve any UUIDs in the

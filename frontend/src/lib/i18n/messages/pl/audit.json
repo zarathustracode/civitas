@@ -1,0 +1,15 @@
+{
+  "title": "Historia zmian · {count}",
+  "empty": "Dla tej propozycji nie zapisano jeszcze żadnych zdarzeń.",
+  "action.proposal_created": "Utworzenie propozycji",
+  "action.proposal_status_changed": "Zmiana statusu",
+  "status.draft": "szkic",
+  "status.deliberation": "debata",
+  "status.voting": "głosowanie",
+  "status.closed": "zamknięta",
+  "transition": "{from} → {to}",
+  "transition_auto": "automatycznie: {from} → {to}",
+  "by": "konto: {name}",
+  "by_system": "przez system",
+  "by_unknown": "nieznane konto"
+}

@@ -1,0 +1,18 @@
+{
+  "demo_label": "Sandbox demo notice",
+  "demo_notice": "Sandbox demo · data is seeded for demonstration — votes, delegations, and accounts here are not binding.",
+  "home_label": "Civitas — home",
+  "nav_primary": "Primary",
+  "nav_secondary": "Secondary",
+  "nav_proposals": "Proposals",
+  "nav_delegations": "Delegations",
+  "nav_operator": "Operator",
+  "profile_label": "Your profile — {name}",
+  "sign_in": "Sign in",
+  "tagline": "open civic infrastructure",
+  "about": "About",
+  "topics": "Topics",
+  "source": "Source",
+  "language": "Language",
+  "meta_description": "Civitas — open-source platform for direct democracy with optional delegation."
+}

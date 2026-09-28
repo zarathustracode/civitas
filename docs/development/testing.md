@@ -125,13 +125,18 @@ Coverage is a **floor**. Tests should exist because they would catch a real regr
 
 `axe-core` runs in CI against built pages. Failures block the PR.
 
+The scan is `frontend/tests/e2e/a11y.spec.ts`, run by the `e2e` workflow against the production build and a seeded API. It checks every route — anonymous, signed in, and the operator dashboard, plus states such as an open ballot and a form error — against the WCAG 2.1 A and AA rules. A new route or a new page state gets a line in that file.
+
 In addition, manual keyboard-only testing of new pages before sign-off. A page that cannot be operated keyboard-only is not done.
 
 ## Performance tests
 
-Read-endpoint benchmarks live in `backend/crates/civitas-api/benches/` (using `criterion`). The CI runs them informationally — a regression doesn't fail the build automatically, but a sustained regression should be addressed.
+The `perf` workflow enforces a performance budget on every change to `backend/` or `frontend/`. Both checks fail the build.
 
-Frontend Lighthouse runs on the built site in CI; a score below targets fails the build.
+- **API read-path P99.** `backend/perf/reads.js` is a [k6](https://k6.io) script. Its setup grows the seed data into a docket of a few dozen proposals with votes, then it drives the endpoints behind the public pages (docket summaries, proposal, tally, comments, audit, topics) at a steady 100 requests per second for 30 seconds against a release build. Any endpoint whose P99 exceeds 50 ms, or any failed request, fails the run. Run it locally with `k6 run backend/perf/reads.js`; `P99_BUDGET_MS`, `RATE` and `DURATION` override the defaults.
+- **Lighthouse.** `frontend/lighthouserc.cjs` audits the production build (home, docket, topics, login and a voting proposal) three times each under mobile emulation and asserts the median run against the targets in [`frontend.md`](./frontend.md#performance). Run it with `pnpm build && pnpm lhci` while the seeded API is up. CI keeps the reports as a build artifact.
+
+A budget that fails is a regression to fix, not a number to raise. Raising a budget is a reviewed change with the measurements that justify it.
 
 ## Test data
 
@@ -173,6 +178,6 @@ CI runs:
 6. `pnpm test` (Vitest)
 7. `pnpm exec playwright test` against built backend + frontend
 8. `axe-core` accessibility tests
-9. Lighthouse perf budget check
+9. Performance budget: API read P99 (k6) and Lighthouse
 
 A PR cannot merge with any of these failing.

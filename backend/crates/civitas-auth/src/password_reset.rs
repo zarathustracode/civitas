@@ -3,7 +3,7 @@
 //! `request` issues a token. `complete` validates the token, hashes the new
 //! password, updates the user, revokes all existing sessions for that user
 //! (so a stolen reset cannot keep the attacker logged in elsewhere), and
-//! invalidates outstanding reset tokens.
+//! invalidates outstanding reset tokens and login links.
 
 use chrono::{Duration, Utc};
 use sqlx::PgPool;
@@ -66,6 +66,7 @@ pub async fn complete(pool: &PgPool, token_plaintext: &str, new_password: &str) 
 
     users::update_password_hash(&mut tx, user_id, &new_hash).await?;
     db_tokens::revoke_all_password_resets(&mut *tx, user_id).await?;
+    db_tokens::revoke_all_login_links(&mut *tx, user_id).await?;
 
     tx.commit().await?;
 

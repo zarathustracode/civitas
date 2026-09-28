@@ -1,32 +1,33 @@
 <script lang="ts">
   import type { PageData } from './$types';
+  import { getI18n } from '$lib/i18n';
   let { data }: { data: PageData } = $props();
+  const i18n = getI18n();
 </script>
 
 <svelte:head>
-  <title>Topics — Civitas</title>
+  <title>{i18n.t('topics.title')} — Civitas</title>
 </svelte:head>
 
 <section class="mx-auto max-w-civic px-5 pb-20 pt-14 sm:px-10">
   <div class="mb-3.5 font-mono text-[11px] uppercase tracking-[0.2em] text-ink-400">
-    The commons
+    {i18n.t('topics.eyebrow')}
   </div>
   <h1
     class="font-serif text-[clamp(40px,5.4vw,60px)] font-semibold leading-[1.04] tracking-[-0.015em]"
   >
-    Topics
+    {i18n.t('topics.title')}
   </h1>
   <p class="mt-[18px] max-w-[58ch] font-serif text-[20px] leading-[1.5] text-ink-600">
-    Topics are the unit of delegation. You can delegate your vote on different topics to different
-    people you trust.
+    {i18n.t('topics.intro')}
   </p>
 
   {#if data.topics.length === 0}
     <p
       class="mt-8 rounded border border-dashed border-line px-6 py-6 font-serif text-[18px] text-ink-600"
     >
-      No topics yet.{#if data.currentUser}
-        Verified accounts can create one when proposals call for it.{/if}
+      {i18n.t('topics.empty')}{#if data.currentUser}
+        {' '}{i18n.t('topics.empty_hint')}{/if}
     </p>
   {:else}
     <div class="mt-8 grid gap-3 sm:grid-cols-2">

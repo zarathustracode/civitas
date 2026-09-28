@@ -4,7 +4,7 @@ import { getTopic, getTopicStats } from '$lib/api/topics';
 import { listProposals } from '$lib/api/proposals';
 import { ApiError } from '$lib/api/errors';
 
-export const load: PageServerLoad = async ({ params, fetch, request }) => {
+export const load: PageServerLoad = async ({ params, fetch, request, locals }) => {
   try {
     const topic = await getTopic(params.slug, fetch, request.headers);
     const [proposals, stats] = await Promise.all([
@@ -14,7 +14,7 @@ export const load: PageServerLoad = async ({ params, fetch, request }) => {
     return { topic, proposals, stats };
   } catch (e) {
     if (e instanceof ApiError && e.status === 404) {
-      throw error(404, 'Topic not found');
+      throw error(404, locals.i18n.t('errors.page.topic_not_found'));
     }
     throw e;
   }
